@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from tools.utils import oersted_to_tesla
 
+
 class DataFile:
     # Initializer / Instance Attributes
     def __init__(self, filename, parameters):
@@ -25,12 +26,13 @@ class DataFile:
         convert_b_flag = parameters[5]
         cols_to_remove = parameters[6]
 
+
         # FIgure out how to skip the header
 
         with open(self.filename, 'r') as the_file:
             all_data = [line.split(delimeter) for line in the_file.readlines()[num_to_skip:]]
             if row_after_header_useless: all_data.pop(1)
-            dat_arr = np.array(flatten(all_data)).reshape((len(all_data), len(all_data[0])))
+            dat_arr = np.array(flatten(all_data),dtype='U64').reshape((len(all_data), len(all_data[0])))
 
 
         if delete_comment_flag:

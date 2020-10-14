@@ -15,6 +15,6 @@ class MakePlot():
         matplotlib.use('TkAgg')
         plt.rc('font', family='serif')
         sns.set_context('paper')
-        fig, axs = plt.subplots(nrows=self.nrows, ncols=self.ncols)
+        fig, axs = plt.subplots(nrows=self.nrows, ncols=self.ncols,figsize=self.figsize)
         plt.interactive(False)
         return fig, axs
