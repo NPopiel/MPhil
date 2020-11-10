@@ -1,9 +1,12 @@
 import pandas as pd
 from tools.utils import *
 from tools.DataFile import DataFile
+import seaborn as sns
 
+#CHANGE
 main_path = '/Users/npopiel/Documents/MPhil/Data/'
 
+#Change to single file
 filenames = ['data_original/FeSb2_VT11&SmB6_sbf25-19_EVERYTHING-GrapheneCentre.dat',
              'data_original/3Kup_FeSb2_VT11&SmB6_sbf25-19_EVERYTHING-GrapheneCentre.dat',
              'data_original/FeSb2_VT1_VT26_EVERYTHING-GrapheneCentre.dat',
@@ -14,6 +17,7 @@ filenames = ['data_original/FeSb2_VT11&SmB6_sbf25-19_EVERYTHING-GrapheneCentre.d
 
 
 # here are the original column names for reference
+# CHange to whatever you got from text editor
 og_col_names = ['Time Stamp (s)', 'Temperature (K)', 'Field (Oe)', 'Sample Position (deg)', 'Chamber Pressure (Torr)',
                 'Resistance Ch1 (Ohms)', 'Resistance Std. Dev. Ch1 (Ohms)', 'Phase Angle Ch1 (deg)',
                 'I-V Current Ch1 (mA)', 'I-V Voltage Ch1 (V)', 'Frequency Ch1 (Hz)', 'Averaging Time Ch1 (s)',
@@ -34,6 +38,7 @@ og_col_names = ['Time Stamp (s)', 'Temperature (K)', 'Field (Oe)', 'Sample Posit
 
 
 # the new column names I created
+# Make equivelant names for whatever is above
 new_col_names = ['time', 'temp', 'b_field', 'samp_degrees', 'chamber_pressure',
                  'resistance_ch1', 'sigma_resistance_ch1', 'phase_angle_ch1',
                  'iv_current_ch1', 'iv_voltage_ch1', 'frequency_ch1', 'avging_time_ch1',
@@ -51,23 +56,19 @@ new_col_names = ['time', 'temp', 'b_field', 'samp_degrees', 'chamber_pressure',
                  'eto_ch11', 'eto_ch12', 'eto_ch13', 'eto_ch14', 'eto_ch15',
                  'eto_ch16']
 
-lines_to_skip = 18
+lines_to_skip = 29
 delimeter = ','
 row_after_header_useless = True
-row_before_header_useless = False
 delete_comment_flag = True
 new_headers = new_col_names
 convert_b_flag = True
 cols_to_remove = None
 
-test_lst = []
-
-lines_per_file = 18
 rows_after_header_useless = True
 
 filename = main_path + 'string_for_name.dat'
 
-parameters = [lines_per_file,
+parameters = [lines_to_skip,
               delimeter,
               rows_after_header_useless,
               delete_comment_flag,
@@ -79,6 +80,9 @@ file = DataFile(filename, parameters)
 
 df = file.open()
 
+#Change names to relevant current stuff
+
+'''
 df, peaks_current = extract_sweep_peaks(df, 'ac_current_ch2', 'current_sweep_ch2', 'I = ')
 
 groupers = df.groupby('current_sweep_ch2')
@@ -94,8 +98,41 @@ for current, inds in groupers.groups.items():
     subsection = df[df['current_sweep_ch2'] == current]
     resistance_by_current.append(subsection)
     currents.append(current)
+    
+'''
+
+fig, axs = MakePlot(ncols=1, nrows=1, figsize=(16, 9)).create()
+ax1 = axs[0]
+#ax2 = axs[1]
+#x3 = axs[2]
+
+sns.scatterplot(y='resistance_ch2', x='temperature', data=df, ax=ax1, legend=False)
+# ax1.set_title('Resistance by Time')
+ax1.set_ylabel(r'$R  $', usetex=True, rotation=0, fontsize=16)
+ax1.set_xlabel(r'$T  $', usetex=True, fontsize=16)
+
+'''
+
+sns.scatterplot(x='voltage_amp_ch2', y='resistance_ch2', hue='current_sweep_ch2', data=df, ax=ax2,
+                legend=False)
+# ax2.set_title('Resistance by Time')
+ax2.set_ylabel(r'', usetex=True, rotation=0, fontsize=16)
+ax2.set_xlabel(r'$V  $', usetex=True, fontsize=16)
+
+sns.scatterplot(y='resistance_ch2', x='b_field', hue='current_sweep_ch2', data=df, ax=ax3, legend=True)
+# ax3.set_title('Voltage by Time')
+ax3.set_ylabel(r'', usetex=True, rotation=0, fontsize=16)
+ax3.set_xlabel(r'$\mu_o H_o  $', usetex=True, fontsize=16)
+
+legend = ax3.legend()
+ax3.get_legend().remove()
+'''
+fig.suptitle('Resistance by Temperature', fontsize=22)
+#plt.figlegend(frameon=False,
+ #             loc='center right',
+              title='Current (mA)', )  # ,labels=np.unique(df.current_sweep_ch2.values), frameon=True)
+#
+plt.show()
 
 
-
-
-df = remove_irrelevant_columns(df)
+#df = remove_irrelevant_columns(df)
