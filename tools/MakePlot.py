@@ -6,7 +6,7 @@ import matplotlib
 
 class MakePlot():
 
-    def __init__(self, nrows=1,ncols=1,figsize=(9,12)):
+    def __init__(self, nrows=1,ncols=1,figsize=(12,9)):
         self.nrows = nrows
         self.ncols = ncols
         self.figsize = figsize

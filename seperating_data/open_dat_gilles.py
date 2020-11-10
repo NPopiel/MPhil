@@ -62,54 +62,40 @@ cols_to_remove = None
 
 test_lst = []
 
-lines_per_file = [18,18,16,16,19,19,19]
+lines_per_file = 18
 rows_after_header_useless = True
-#rows_before_header_useless = [False, False, False, False, True, True, True]
 
-for ind, name in enumerate(filenames):
+filename = main_path + 'string_for_name.dat'
 
-    filename = main_path + name
+parameters = [lines_per_file,
+              delimeter,
+              rows_after_header_useless,
+              delete_comment_flag,
+              new_headers,
+              convert_b_flag,
+              cols_to_remove]
 
-    parameters = [lines_per_file[ind],
-                  delimeter,
-                  rows_after_header_useless,
-                  delete_comment_flag,
-                  new_headers,
-                  convert_b_flag,
-                  cols_to_remove]
+file = DataFile(filename, parameters)
 
-    file = DataFile(filename, parameters)
+df = file.open()
 
-    df = file.open()
+df, peaks_current = extract_sweep_peaks(df, 'ac_current_ch2', 'current_sweep_ch2', 'I = ')
 
-    test_lst.append(df)
+groupers = df.groupby('current_sweep_ch2')
 
-sm_b6_data = pd.concat([test_lst[0],test_lst[1]])
-fe_sb2_data1 = pd.concat([test_lst[2],test_lst[3]])
-fe_sb2_data2 = pd.concat([test_lst[4],test_lst[5], test_lst[6]])
+save_path = 'save_path'
+
+temp='TEMPERATURE AS FLOAT'
+
+resistance_by_current = []
+currents = []
+
+for current, inds in groupers.groups.items():
+    subsection = df[df['current_sweep_ch2'] == current]
+    resistance_by_current.append(subsection)
+    currents.append(current)
 
 
-sm_b6_data = remove_irrelevant_columns(sm_b6_data)
-sm_b6_data = remove_constant_column(sm_b6_data)
 
-fe_sb2_data1 = remove_irrelevant_columns(fe_sb2_data1)
-fe_sb2_data1 = remove_constant_column(fe_sb2_data1)
 
-fe_sb2_data2 = remove_irrelevant_columns(fe_sb2_data2)
-fe_sb2_data2 = remove_constant_column(fe_sb2_data2)
-
-print('SmB6 Headers:')
-print(sm_b6_data.columns)
-print('\n')
-print('FeSb2 - data 1 - Headers:')
-print(fe_sb2_data1.columns)
-print('\n')
-print('FeSb2 - data 2 - Headers:')
-print(fe_sb2_data2.columns)
-print('\n')
-
-sm_b6_data.to_csv(main_path+'data_csvs_cleaned/SmB6_data1.csv',index=False)
-fe_sb2_data1.to_csv(main_path+'data_csvs_cleaned/FeSb2_data1.csv',index=False)
-fe_sb2_data2.to_csv(main_path+'data_csvs_cleaned/FeSb2_data2.csv',index=False)
-# I am just going to assume the ETO Code is not relevant even though it changes therefore I'll put it in as a parameter
-# in remove constant column
+df = remove_irrelevant_columns(df)

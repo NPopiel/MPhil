@@ -36,13 +36,13 @@ df, locs=extract_stepwise_peaks(df,'temp','temp_flag','const_temp_')
 # run each one seperately
 
 # If it doesn't line up, alter the parameter threshold in extract_stepwise_peaks()
-
-fig, axs = MakePlot().create()
-plt.plot(df.temp)
-#plt.plot(np.diff(df.temp))
-for peak in locs: plt.axvline(peak)
-plt.title('Verification of Extracting Constant Temperature Regions')
-plt.show()
+#
+# fig, axs = MakePlot().create()
+# plt.plot(df.temp)
+# #plt.plot(np.diff(df.temp))
+# for peak in locs: plt.axvline(peak)
+# plt.title('Verification of Extracting Constant Temperature Regions')
+# plt.show()
 
 # Now time to check the magnetic field!
 # Since it is very large and is constantly changing, we need to index a specific region for visual purposes -- say 10000
@@ -53,10 +53,33 @@ num_pts_b_vis = 10000
 
 df = extract_changing_field(df, col_name='b_field', new_col_name='b_flag',root_flag_marker='b')
 
+sigma=13.95
+
+def select_values_near_n(array,n=13.95,cond='max'):
+    lst = []
+    c=0
+    for ind,el in enumerate(array):
+        if cond=='max':
+            if el>n:
+                lst.append(c)
+        else:
+            if el<n:
+                lst.append(c)
+        c+=1
+
+    return lst
+
+locs_of_maxima = select_values_near_n(df['b_field'])
+
+ordered_bs = np.argsort(df.b_field)
+
 fig2, axs2 = MakePlot().create()
-plt.plot(df.b_field[:num_pts_b_vis])
+plt.plot(df.b_field)
+for loc in locs_of_maxima:
+    plt.axvline(loc,c='red')
 #plt.plot(np.diff(df.b_field[:num_pts_b_vis]))
 plt.title('Verification of Extracting Constant Temperature Regions')
 plt.show()
+print()
 
 

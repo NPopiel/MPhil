@@ -32,7 +32,6 @@ og_col_names = ['Time Stamp (s)', 'Temperature (K)', 'Field (Oe)', 'Sample Posit
                 'ETO Channel 11', 'ETO Channel 12', 'ETO Channel 13', 'ETO Channel 14', 'ETO Channel 15',
                 'ETO Channel 16\n']
 
-
 # the new column names I created
 new_col_names = ['time', 'temp', 'b_field', 'samp_degrees', 'chamber_pressure',
                  'resistance_ch1', 'sigma_resistance_ch1', 'phase_angle_ch1',
@@ -63,7 +62,7 @@ cols_to_remove = None
 test_lst = []
 
 lines_per_file = [18,18,16,16,19,19,19]
-rows_after_header_useless = True
+rows_after_header_useless = [True, True, True, True, True, True, True]
 #rows_before_header_useless = [False, False, False, False, True, True, True]
 
 for ind, name in enumerate(filenames):
@@ -72,7 +71,7 @@ for ind, name in enumerate(filenames):
 
     parameters = [lines_per_file[ind],
                   delimeter,
-                  rows_after_header_useless,
+                  rows_after_header_useless[ind],
                   delete_comment_flag,
                   new_headers,
                   convert_b_flag,
@@ -83,6 +82,10 @@ for ind, name in enumerate(filenames):
     df = file.open()
 
     test_lst.append(df)
+
+temp_ranges = [(2, 30),
+               (2, 10),
+               (2,23)]
 
 sm_b6_data = pd.concat([test_lst[0],test_lst[1]])
 fe_sb2_data1 = pd.concat([test_lst[2],test_lst[3]])
@@ -98,6 +101,12 @@ fe_sb2_data1 = remove_constant_column(fe_sb2_data1)
 fe_sb2_data2 = remove_irrelevant_columns(fe_sb2_data2)
 fe_sb2_data2 = remove_constant_column(fe_sb2_data2)
 
+columns_to_keep = ['temp', 'b_field','resistance_ch1','ac_current_ch1','resistance_ch1','ac_current_ch1']
+
+sm_b6_data = sm_b6_data[columns_to_keep]
+fe_sb2_data1 = fe_sb2_data1[columns_to_keep]
+fe_sb2_data2 = fe_sb2_data2[columns_to_keep]
+
 print('SmB6 Headers:')
 print(sm_b6_data.columns)
 print('\n')
@@ -107,6 +116,45 @@ print('\n')
 print('FeSb2 - data 2 - Headers:')
 print(fe_sb2_data2.columns)
 print('\n')
+
+channels = ['ch1','ch2']
+
+data_sets = [sm_b6_data, fe_sb2_data1, fe_sb2_data2]
+
+for channel in channels:
+
+    for df in data_sets:
+
+        df, locs=extract_stepwise_peaks(df,'temp','temp_flag','const_temp_')
+
+        groupers = df.groupby('temp_flag')
+
+        new_headers = df.columns
+
+        for constant_temp, inds in groupers.groups.items():
+            if channel == 'ch2': nan_on_two = False
+            else: nan_on_two = True
+
+            df_T = df[df.temp_flag == constant_temp]
+
+            df_T = drop_nans(df_T,nan_on_two=nan_on_two)
+
+            df_T, peaks_current = extract_sweep_peaks(df_T, 'ac_current_'+channel, 'current_sweep_'+channel, 'I = ')
+
+            groupers = df_T.groupby('current_sweep_'+channel)
+
+            for current, inds in groupers.groups.items():
+                subsection = df_T[df_T['current_sweep_'+channel] == current]
+                current = round(float(current.split(' ')[-1]))
+
+                resistance = subsection['resistance_'+channel]
+                field = subsection['b_field']
+
+                array = np.array([resistance,field])
+
+                subsection.to_csv(save_name, index=False)
+
+
 
 sm_b6_data.to_csv(main_path+'data_csvs_cleaned/SmB6_data1.csv',index=False)
 fe_sb2_data1.to_csv(main_path+'data_csvs_cleaned/FeSb2_data1.csv',index=False)

@@ -3,11 +3,31 @@ import pandas as pd
 import scipy.io
 import os
 import matplotlib.pyplot as plt
+from .MakePlot import MakePlot
 from matplotlib.animation import FuncAnimation
 from scipy.signal import argrelextrema, find_peaks, find_peaks_cwt
 from .constants import OERSTED_2_TESLA
 
 flatten = lambda l: [item for sublist in l for item in sublist]
+
+def deriv_skip_one(array):
+    lst=[]
+    for ind, val in enumerate(array):
+        len_arr = len(array)
+        if ind%2 == 0 and ind<len_arr: lst.append(array[ind+2]-val)
+        else: lst.append(np.nan)
+    return np.array(lst)
+
+def first_derivative(array, ind=1):
+    p = []
+    for i in range(array.shape[0]):
+        if i+ind > (array.shape[0] - 1):
+            p_i = array[i]
+            p.append(p_i)
+        else:
+            p_i = array[i+ind] - array[i]
+            p.append(p_i)
+    return np.asarray(p)
 
 def moving_average(interval, window_size):
     window = np.ones(int(window_size)) / float(window_size)
@@ -95,6 +115,57 @@ def extract_changing_field(df, col_name, new_col_name, root_flag_marker, thresho
 
     return df
 
+def find_b_extrma(df, col_name='b_flag',threshold=0.001):
+    # This program uses my convention of before for labelling the b_flag
+    # We know that if it goes from increasing to decreasing, it's  maximum value!
+    # Conversely, if it goes from decreasing to increasing, its a minimum!
+    # This will still run into the problem with cSMB6 data where it is constant...
+
+    # Pseudocode
+    # given b_flag list
+    # for flag1, flag2 in zip(b_flag[:-1],b_flag[1:]
+        # if flag1 == 'increasing' and flag2 =='decreasing':
+            #save maximum index which is flag1 position
+        # elif flag1 == 'decreasing
+
+    b_flag = df[col_name].tolist()
+
+    total_inds = np.arange(len(b_flag))
+
+    increasing_inds = [i for i, n in enumerate(b_flag) if n == 'increasing']
+    decreasing_inds = [i for i, n in enumerate(b_flag) if n == 'decreasing']
+
+    max_locs, min_locs = [],[]
+    c=0
+
+    for flag1, flag2 in zip(b_flag[:-1],b_flag[1:]):
+        if flag1 == 'increasing':
+            if flag2 == 'decreasing':
+                max_locs.append(c)
+
+            #elif flag2 != 'increasing':
+             #   max_locs.append(next(x for x, val in enumerate(decreasing_inds) if val > c))
+
+        if flag1 == 'decreasing':
+            if flag2 == 'increasing':
+                min_locs.append(c)
+            #elif flag2 != 'decreasing':
+             #   min_locs.append(next(x for x, val in enumerate(increasing_inds) if val > c))
+        c+=1
+
+    return max_locs, min_locs
+
+    relevant_parameter = np.array(df[col_name])
+
+    flag = []
+    c=0
+    for ind, val in enumerate(second_deriv):
+        if np.abs(val) < threshold:
+            flag.append(c)
+        c+=1
+
+    return flag
+
 def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, threshold=0.9, round_num=3):
 
     relevant_parameter = np.array(df[col_name])
@@ -119,14 +190,13 @@ def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, thresho
 
     return df, locs
 
-def drop_nans(df):
+def drop_nans(df,nan_on_two=True):
+    # If the position of the na is on two (the case of ch2, use this) otherwise, we have the nan in position 1 (ch1)
     df_copy = df.copy()
-    #nan_locs=np.argwhere(np.isnan(df.voltage_amp_ch2))
-    df_no_nan1 = df_copy.dropna(how='all')
-    #df_no_nan1.reset_index(drop=False)
-    df_no_nan2 = df_copy.apply(lambda x: pd.Series(x.dropna().values))
-    df_no_nan2.reset_index(drop=False)
-    return df_copy.apply(lambda x: pd.Series(x.dropna().values)).dropna()
+    if not nan_on_two:
+        df_copy = df_copy.drop(df_copy.index[0])
+        return df_copy.iloc[::2]
+    else: return df_copy.iloc[::2]
 
 def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_between_peaks=50):
 
@@ -134,13 +204,12 @@ def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_b
     time_deriv = np.diff(relevant_parameter)
 
     peaks, properties = find_peaks(time_deriv, distance=distance_between_peaks)
-
+    #fig, ax = MakePlot().create()
+    #plt.plot(time_deriv)
+    #plt.show()
     peaks+=1
-
     locs = flatten([[0],peaks.tolist(),[len(relevant_parameter)]])
-
     lst = []
-
 
     c=0
     for idx_pair in zip(locs[:-1],locs[1:]):

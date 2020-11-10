@@ -41,7 +41,7 @@ for idx, folder in enumerate(folder_exts):
     makedir(save_path)
     for temp in range(t1,t2):
         file_name = open_path+base_file_name+str(temp)+file_ext
-        df = drop_nans(pd.read_csv(file_name))
+        df = pd.read_csv(file_name)
 
         df, peaks_voltage = extract_sweep_peaks(df,'voltage_amp_ch1','voltage_sweep_ch1','sweep_')
 
