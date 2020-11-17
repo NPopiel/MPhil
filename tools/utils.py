@@ -3,6 +3,7 @@ import pandas as pd
 import scipy.io
 import os
 import matplotlib.pyplot as plt
+import matplotlib
 from .MakePlot import MakePlot
 from matplotlib.animation import FuncAnimation
 from scipy.signal import argrelextrema, find_peaks, find_peaks_cwt
@@ -166,7 +167,7 @@ def find_b_extrma(df, col_name='b_flag',threshold=0.001):
 
     return flag
 
-def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, threshold=0.9, round_num=3):
+def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, threshold=0.9, round_num=1):
 
     relevant_parameter = np.array(df[col_name])
     time_deriv = np.diff(relevant_parameter)
@@ -193,6 +194,7 @@ def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, thresho
 def drop_nans(df,nan_on_two=True):
     # If the position of the na is on two (the case of ch2, use this) otherwise, we have the nan in position 1 (ch1)
     df_copy = df.copy()
+    df_copy = drop_double_nan(df,'resistance_ch2')
     if not nan_on_two:
         df_copy = df_copy.drop(df_copy.index[0])
         return df_copy.iloc[::2]
@@ -215,7 +217,7 @@ def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_b
     for idx_pair in zip(locs[:-1],locs[1:]):
         for j in range(idx_pair[0],idx_pair[1]):
             indexes = np.arange(idx_pair[0],idx_pair[1])
-            lst.append(root_flag_marker + str(round(relevant_parameter[idx_pair[0]+1]*1000,2)))
+            lst.append(root_flag_marker + str(round(relevant_parameter[idx_pair[0]+1]*1000,1)))
         c+=1
 
 
@@ -223,6 +225,78 @@ def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_b
 
     return df, locs
 
+def drop_double_nan(df, col_name='resistance_ch1'):
+
+    nans_to_drop = np.diff(np.isnan(np.array(df[col_name])))
+    locs_to_drop = []
+    for ind, el in enumerate(nans_to_drop):
+        if el == False:
+            locs_to_drop.append(ind)
+
+    return df.drop(locs_to_drop)
+
+def load_r_and_h(temp_path, current):
+    current_path = temp_path + str(current) + '/'
+
+    data = np.squeeze(load_matrix(current_path + 'data.csv'))
+
+    resistance = data[0]
+    field = data[1]
+    return resistance, field
+
+def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
+    '''
+    Function to offset the "center" of a colormap. Useful for
+    data with a negative min and positive max and you want the
+    middle of the colormap's dynamic range to be at zero.
+
+    Input
+    -----
+      cmap : The matplotlib colormap to be altered
+      start : Offset from lowest point in the colormap's range.
+          Defaults to 0.0 (no lower offset). Should be between
+          0.0 and `midpoint`.
+      midpoint : The new center of the colormap. Defaults to
+          0.5 (no shift). Should be between 0.0 and 1.0. In
+          general, this should be  1 - vmax / (vmax + abs(vmin))
+          For example if your data range from -15.0 to +5.0 and
+          you want the center of the colormap at 0.0, `midpoint`
+          should be set to  1 - 5/(5 + 15)) or 0.75
+      stop : Offset from highest point in the colormap's range.
+          Defaults to 1.0 (no upper offset). Should be between
+          `midpoint` and 1.0.
+    '''
+    cdict = {
+        'red': [],
+        'green': [],
+        'blue': [],
+        'alpha': []
+    }
+
+    # regular index to compute the colors
+    reg_index = np.linspace(start, stop, 257)
+
+    # shifted index to match the data
+    shift_index = np.hstack([
+        np.linspace(0.0, midpoint, 128, endpoint=False),
+        np.linspace(midpoint, 1.0, 129, endpoint=True)
+    ])
+
+    for ri, si in zip(reg_index, shift_index):
+        r, g, b, a = cmap(ri)
+
+        cdict['red'].append((si, r, r))
+        cdict['green'].append((si, g, g))
+        cdict['blue'].append((si, b, b))
+        cdict['alpha'].append((si, a, a))
+
+    newcmap = matplotlib.colors.LinearSegmentedColormap(name, cdict)
+    plt.register_cmap(cmap=newcmap)
+
+    return newcmap
+
+def nan_helper(y):
+    return np.isnan(y), lambda z: z.nonzero()[0]
 
 
 

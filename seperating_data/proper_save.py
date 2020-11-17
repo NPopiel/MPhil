@@ -1,6 +1,7 @@
 import pandas as pd
 from tools.utils import *
 from tools.DataFile import DataFile
+import seaborn as sns
 
 main_path = '/Users/npopiel/Documents/MPhil/Data/'
 
@@ -9,9 +10,10 @@ filenames = ['data_original/FeSb2_VT11&SmB6_sbf25-19_EVERYTHING-GrapheneCentre.d
              'data_original/FeSb2_VT1_VT26_EVERYTHING-GrapheneCentre.dat',
              'data_original/4Kup_FeSb2_VT1_VT26_EVERYTHING-GrapheneCentre.dat',
              'data_original/FeSb2_VT51_VT49_EVERYTHING-GrapheneCentre.dat',
-             'data_original/7Kup_FeSb2_VT51_VT49_EVERYTHING-GrapheneCentre.dat',
-             'data_original/10Kup_FeSb2_VT51_VT49_EVERYTHING-GrapheneCentre.dat']
+             'data_original/7Kup_FeSb2_VT51_VT49_EVERYTHING-GrapheneCentre.dat']
 
+ch1_samples = ['VT11', 'VT1', 'VT51']
+ch2_samples = ['SBF25', 'VT26','VT49']
 
 # here are the original column names for reference
 og_col_names = ['Time Stamp (s)', 'Temperature (K)', 'Field (Oe)', 'Sample Position (deg)', 'Chamber Pressure (Torr)',
@@ -69,8 +71,7 @@ for ind, name in enumerate(filenames):
 
     filename = main_path + name
 
-    parameters = [lines_per_file[ind],
-                  delimeter,
+    parameters = [delimeter,
                   rows_after_header_useless[ind],
                   delete_comment_flag,
                   new_headers,
@@ -83,39 +84,21 @@ for ind, name in enumerate(filenames):
 
     test_lst.append(df)
 
-temp_ranges = [(2, 30),
-               (2, 10),
-               (2,23)]
+temp_ranges = [(2, 23),
+               (2, 30),
+               (2, 10)]
 
 sm_b6_data = pd.concat([test_lst[0],test_lst[1]])
 fe_sb2_data1 = pd.concat([test_lst[2],test_lst[3]])
-fe_sb2_data2 = pd.concat([test_lst[4],test_lst[5], test_lst[6]])
+fe_sb2_data2 = pd.concat([test_lst[4],test_lst[5]])
 
 
-sm_b6_data = remove_irrelevant_columns(sm_b6_data)
-sm_b6_data = remove_constant_column(sm_b6_data)
-
-fe_sb2_data1 = remove_irrelevant_columns(fe_sb2_data1)
-fe_sb2_data1 = remove_constant_column(fe_sb2_data1)
-
-fe_sb2_data2 = remove_irrelevant_columns(fe_sb2_data2)
-fe_sb2_data2 = remove_constant_column(fe_sb2_data2)
-
-columns_to_keep = ['temp', 'b_field','resistance_ch1','ac_current_ch1','resistance_ch1','ac_current_ch1']
+columns_to_keep = ['temp', 'b_field','resistance_ch1','ac_current_ch1','resistance_ch2','ac_current_ch2']
 
 sm_b6_data = sm_b6_data[columns_to_keep]
 fe_sb2_data1 = fe_sb2_data1[columns_to_keep]
 fe_sb2_data2 = fe_sb2_data2[columns_to_keep]
 
-print('SmB6 Headers:')
-print(sm_b6_data.columns)
-print('\n')
-print('FeSb2 - data 1 - Headers:')
-print(fe_sb2_data1.columns)
-print('\n')
-print('FeSb2 - data 2 - Headers:')
-print(fe_sb2_data2.columns)
-print('\n')
 
 channels = ['ch1','ch2']
 
@@ -123,17 +106,48 @@ data_sets = [sm_b6_data, fe_sb2_data1, fe_sb2_data2]
 
 for channel in channels:
 
-    for df in data_sets:
+    if channel == 'ch1':
+        samples = ch1_samples
+        nan_on_two=True
+    else:
+        samples = ch2_samples
+        nan_on_two=False
+
+    for ind, df in enumerate(data_sets):
+
+        if ind == 0:
+            df = df.iloc[436:]
+            df = df.reset_index()
+            df = df[columns_to_keep]
+
+        df = drop_double_nan(df)
+        df = drop_double_nan(df,'resistance_ch2')
+        df = df.reset_index()
+        df = df[columns_to_keep]
+
+        path = main_path + samples[ind] + '/'
+        makedir(path)
 
         df, locs=extract_stepwise_peaks(df,'temp','temp_flag','const_temp_')
+        df = drop_double_nan(df)
+        df = drop_double_nan(df,'resistance_ch2')
+        df = df.reset_index()
+
+        if ind == 0:
+            df.temp_flag[df.temp_flag == 'const_temp_1.8'] = 'const_temp_2.0'
+            df = df[df.temp_flag != 'const_temp_2.1']
+
+        if ind == 1:
+            df.temp_flag[df.temp_flag == 'const_temp_4.8'] = 'const_temp_4.0'
+            df.temp_flag[df.temp_flag == 'const_temp_3.9'] = 'const_temp_4.0'
 
         groupers = df.groupby('temp_flag')
 
-        new_headers = df.columns
-
         for constant_temp, inds in groupers.groups.items():
-            if channel == 'ch2': nan_on_two = False
-            else: nan_on_two = True
+
+            temp_path = path + str(float(constant_temp.split('_')[-1]))+'/'
+            makedir(temp_path)
+            print(temp_path)
 
             df_T = df[df.temp_flag == constant_temp]
 
@@ -141,18 +155,27 @@ for channel in channels:
 
             df_T, peaks_current = extract_sweep_peaks(df_T, 'ac_current_'+channel, 'current_sweep_'+channel, 'I = ')
 
-            groupers = df_T.groupby('current_sweep_'+channel)
+            groupers2 = df_T.groupby('current_sweep_'+channel)
 
-            for current, inds in groupers.groups.items():
+            for current, indxs in groupers2.groups.items():
+
                 subsection = df_T[df_T['current_sweep_'+channel] == current]
                 current = round(float(current.split(' ')[-1]))
 
+                current_path = temp_path + str(current)+'/'
+                makedir(current_path)
+
                 resistance = subsection['resistance_'+channel]
                 field = subsection['b_field']
+                fig, ax = MakePlot().create()
+                plt.plot(field)
+                plt.title('Drop_nans after current loop')
+                plt.show()
 
                 array = np.array([resistance,field])
 
-                subsection.to_csv(save_name, index=False)
+                save_file(array,current_path,'data')
+
 
 
 
