@@ -34,10 +34,12 @@ def moving_average(interval, window_size):
     window = np.ones(int(window_size)) / float(window_size)
     return np.convolve(interval, window, 'same')
 
-def load_matrix(filepath):
+def load_matrix(filepath, delimeter=','):
     extension = filepath.split('.')[-1]
     if str(extension) == 'csv':
-        return np.genfromtxt(filepath,delimiter = ',')
+        return np.genfromtxt(filepath,delimiter = delimeter)
+    elif str(extension) == 'txt':
+        return np.genfromtxt(filepath,delimiter = delimeter, names=True)
     elif str(extension) == 'npy':
         return np.load(filepath)
     elif str(extension) == 'mat':
@@ -167,9 +169,9 @@ def find_b_extrma(df, col_name='b_flag',threshold=0.001):
 
     return flag
 
-def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, threshold=0.9, round_num=1):
+def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, threshold=1, round_num=1):
 
-    relevant_parameter = np.array(df[col_name])
+    relevant_parameter = np.abs(np.array(df[col_name]))
     time_deriv = np.diff(relevant_parameter)
     peaks = np.where(time_deriv>=threshold)[0]
     peaks+=1
