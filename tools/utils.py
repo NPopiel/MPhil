@@ -8,8 +8,16 @@ from .MakePlot import MakePlot
 from matplotlib.animation import FuncAnimation
 from scipy.signal import argrelextrema, find_peaks, find_peaks_cwt
 from .constants import OERSTED_2_TESLA
+from .DataFile import *
 
 flatten = lambda l: [item for sublist in l for item in sublist]
+
+default_parameters_dat_file = [',',
+                               True,
+                               True,
+                               None,
+                               False,
+                               None]
 
 def deriv_skip_one(array):
     lst=[]
@@ -34,7 +42,7 @@ def moving_average(interval, window_size):
     window = np.ones(int(window_size)) / float(window_size)
     return np.convolve(interval, window, 'same')
 
-def load_matrix(filepath, delimeter=','):
+def load_matrix(filepath, delimeter=',',dat_type = 'mpms',params=default_parameters_dat_file):
     extension = filepath.split('.')[-1]
     if str(extension) == 'csv':
         return np.genfromtxt(filepath,delimiter = delimeter)
@@ -46,6 +54,8 @@ def load_matrix(filepath, delimeter=','):
         return scipy.io.loadmat(filepath)
     elif str(extension) == 'npz':
         return np.load(filepath)
+    elif str(extension) == 'dat':
+        return DataFile(filepath,parameters=params).open()
 
 def file_exists(filename):
     import os

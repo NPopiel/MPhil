@@ -64,9 +64,7 @@ for ind, sample in enumerate(samples):
 
             ratio = clipped_arr/resistance[min_field_loc]
 
-            print('Temperature', temp)
-            print('Current:', current)
-            print('FInal MR Ratio Value', resistance[max_field_loc]/resistance[min_field_loc])
+
 
             resistance_lst.append(ratio)
             field_curr.append(field[range1:range2])
