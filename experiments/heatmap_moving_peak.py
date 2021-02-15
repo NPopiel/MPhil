@@ -60,12 +60,12 @@ hex_list = ['#0091ad', '#d6f6eb', '#fdf1d2', '#faaaae', '#ff57bb']
 
 main_path = '/Users/npopiel/Documents/MPhil/Data/'
 
-save_path = '/Volumes/GoogleDrive/Shared drives/Quantum Materials/Popiel/Linear Heat Maps/'
+save_path = '/Volumes/GoogleDrive/Shared drives/Quantum Materials/Popiel/low_t_heatmaps/'
 
 samples = ['VT11',
            'VT1', 'VT51', 'SBF25', 'VT26','VT49']#
-temps_1 = (2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0)#,22.0)#,23.0)
-temps_2 = (2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,27.0,28.0,29.0)#,30.0)
+temps_1 = (2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0)#,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0)#,22.0)#,23.0)
+temps_2 = (2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0)#,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,27.0,28.0,29.0)#,30.0)
 temps_3 = (2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0)#,10.0)
 temp_ranges = [temps_1,
                temps_2,
@@ -74,8 +74,8 @@ temp_ranges = [temps_1,
                temps_2,
                temps_3]
 
-temp_lab1 = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]#,22]
-temp_lab2 = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]#,30]
+temp_lab1 = [2,3,4,5,6,7,8,9]#,10,11,12,13,14,15,16,17,18,19,20,21]#,22]
+temp_lab2 = [2,3,4,5,6,7,8,9]#,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]#,30]
 temp_lab3 = [2,3,4,5,6,7,8,9]
 temp_labs = [temp_lab1,
              temp_lab2,temp_lab3,temp_lab1,temp_lab2,temp_lab3]
@@ -115,8 +115,9 @@ for ind, sample in enumerate(samples):
 
             min_field_loc = 0
             max_field_loc = np.argmax(field)
+            max_resistance_loc = np.argmax(resistance)
 
-            ratio = resistance[max_field_loc]/resistance[min_field_loc]
+            ratio = field[max_resistance_loc]
 
             current_lst.append(ratio)
             temperoos.append(temp)
@@ -137,29 +138,26 @@ for ind, sample in enumerate(samples):
 
     other_grid = np.array([temperoos,cureentoos])
 
-    interpd = scipy.interpolate.griddata(data_grid_og,np.ravel(array),(grid_x,grid_y),method='cubic', rescale=True)
-
-    rdgn = sns.color_palette("coolwarm", as_cmap=True, n_colors=1024) #sns.color_palette('viridis',as_cmap=True, n_colors=1024)#
+    interpd = scipy.interpolate.griddata(data_grid_og,np.ravel(array),(grid_x,grid_y),method='cubic')
+    "ch:start=.2,rot=-.3"
+    rdgn = sns.color_palette('viridis', as_cmap=True, n_colors=1024) #sns.color_palette('viridis',as_cmap=True, n_colors=1024)#
     #if sample != 'SBF25':
 
     #else:
     #    divnorm = mcolors.TwoSlopeNorm(vmin=interpd.min(), vcenter=interpd.median(), vmax=interpd.max())
 
     fig, ax = MakePlot().create()
-    if sample!= 'VT26':
-        divnorm = mcolors.TwoSlopeNorm(vmin=interpd.min(), vcenter=1, vmax=1.5)#interpd.max())
-        plt.imshow(interpd, cmap=rdgn, aspect='auto',extent=[2 , temps[-1], 0.001 , 1.5],origin='lower', norm=divnorm)
-    else:
-        plt.imshow(interpd, cmap=rdgn, aspect='auto',extent=[2 , temps[-1], 0.001 , 1.5],origin='lower')
+
+    plt.imshow(interpd, cmap=rdgn, aspect='auto', extent=[2, temps[-1], 0.001, 1.5], origin='lower')
     plt.xlabel('Temperature (K)', fontsize=16)
     plt.ylabel('Current (mA)', fontsize=16)
     #ax.set_yscale('log')
     plt.colorbar()
     # plt.title(r'$\frac{R_{B=14}}{R_{B=0}}$ ('+sample+')',fontsize=22,usetex=True)
-    plt.title(r'Magentoresistive Ratio for ' + sample + r'$(\frac{R_{14T}}{R_{0T}})$ ', fontsize=22)
-    plt.savefig(save_path+sample+'_interpd_clipped.png',dpi=200)
-    plt.close()
-    #plt.show()
+    plt.title(r'Peak Resistance Field (' + sample+')', fontsize=22)
+    #plt.savefig(save_path+sample+'_interpd.png',dpi=200)
+    #plt.close()
+    plt.show()
     print(array.shape)
 
 

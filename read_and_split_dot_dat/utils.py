@@ -1,12 +1,13 @@
-from .constants import OERSTED_2_TESLA
-from .DataFile import *
+from read_and_split_dot_dat.constants import OERSTED_2_TESLA
+from read_and_split_dot_dat.DataFile import *
+from read_and_split_dot_dat.MakePlot import MakePlot
 import numpy as np
 import pandas as pd
 import scipy.io
 import os
 import matplotlib.pyplot as plt
 import matplotlib
-from .MakePlot import MakePlot
+
 from matplotlib.animation import FuncAnimation
 from scipy.signal import argrelextrema, find_peaks, find_peaks_cwt
 
@@ -204,7 +205,7 @@ def find_b_extrma(df, col_name='b_flag',threshold=0.001):
 
     return flag
 
-def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, plot=False,threshold=1, round_num=1, last_point=True):
+def extract_stepwise_peaks(df, col_name, new_col_name,  plot=False,threshold=1, round_num=1, last_point=True):
 
     relevant_parameter = np.abs(np.array(df[col_name]))
     time_deriv = np.diff(relevant_parameter)
@@ -223,7 +224,15 @@ def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, plot=Fa
     for idx_pair in zip(locs[:-1],locs[1:]):
         for j in range(idx_pair[0],idx_pair[1]):
             indexes = np.arange(idx_pair[0],idx_pair[1])
-            lst.append(root_flag_marker + str(np.mean(relevant_parameter[indexes]).round(round_num)))
+
+            t = str(np.mean(relevant_parameter[indexes]).round(round_num))
+            temp_string = ''
+            for char in t:
+                res = char
+                if char == '.':
+                    res = 'p'
+                temp_string += res
+            lst.append(temp_string+'K')
 
 
     df[new_col_name] = lst
@@ -236,6 +245,48 @@ def extract_stepwise_peaks(df, col_name, new_col_name, root_flag_marker, plot=Fa
 
     return df, locs
 
+def extract_stepwise_temps(df, col_name, new_col_name,  plot=False,threshold=1, round_num=1, last_point=True):
+
+    relevant_parameter = np.abs(np.array(df[col_name]))
+    time_deriv = np.diff(relevant_parameter)
+    peaks = np.where(time_deriv>=threshold)[0]
+    peaks+=1
+
+    if last_point: locs = flatten([[0],peaks.tolist(),[len(relevant_parameter)]])
+    else: locs = flatten([[0],peaks.tolist()[:-1], [len(relevant_parameter)]])
+
+    lst = []
+
+    #peaks = find_peaks(time_deriv,distance=1000)
+
+    new_arr = np.zeros(len(relevant_parameter),dtype='S32')
+
+    for idx_pair in zip(locs[:-1],locs[1:]):
+        for j in range(idx_pair[0],idx_pair[1]):
+            indexes = np.arange(idx_pair[0],idx_pair[1])
+
+            t = str(np.mean(relevant_parameter[indexes]).round(round_num))
+            temp_string = ''
+            for char in t:
+                res = char
+                if char == '.':
+                    res = 'p'
+                temp_string += res
+            lst.append(temp_string+'K')
+
+
+    df[new_col_name] = lst
+
+    if plot:
+        fig, ax = MakePlot().create()
+        plt.plot(relevant_parameter)
+        for loc in locs: plt.axvline(loc)
+        plt.show()
+
+    return df, locs
+
+
+
 def drop_nans(df,nan_on_two=True):
     # If the position of the na is on two (the case of ch2, use this) otherwise, we have the nan in position 1 (ch1)
     df_copy = df.copy()
@@ -245,15 +296,16 @@ def drop_nans(df,nan_on_two=True):
         return df_copy.iloc[::2]
     else: return df_copy.iloc[::2]
 
-def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_between_peaks=50):
+def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_between_peaks=50, plot=False):
 
     relevant_parameter = np.array(df[col_name])
     time_deriv = np.diff(relevant_parameter)
 
     peaks, properties = find_peaks(time_deriv, distance=distance_between_peaks)
-    #fig, ax = MakePlot().create()
-    #plt.plot(time_deriv)
-    #plt.show()
+    if plot:
+        fig, ax = MakePlot().create()
+        plt.plot(time_deriv)
+        plt.show()
     peaks+=1
     locs = flatten([[0],peaks.tolist(),[len(relevant_parameter)]])
     lst = []
@@ -262,7 +314,7 @@ def extract_sweep_peaks(df, col_name, new_col_name, root_flag_marker, distance_b
     for idx_pair in zip(locs[:-1],locs[1:]):
         for j in range(idx_pair[0],idx_pair[1]):
             indexes = np.arange(idx_pair[0],idx_pair[1])
-            lst.append(root_flag_marker + str(round(relevant_parameter[idx_pair[0]+1]*1000,1)))
+            lst.append(str(int(round(relevant_parameter[idx_pair[0]+1],0)))+'uA')
         c+=1
 
 

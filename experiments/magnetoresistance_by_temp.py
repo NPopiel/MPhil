@@ -51,8 +51,8 @@ for ind, sample in enumerate(samples):
             #resistance[nans] = np.interp(x(nans), x(~nans), resistance[~nans])
 
 
-            min_field_loc = np.where(field == np.amin(field))[0][0]
-            max_field_loc = np.where(field == np.amax(field))[0][0]
+            min_field_loc = 0
+            max_field_loc = np.argmax(field)
 
             if min_field_loc > max_field_loc:
                 range1, range2 = max_field_loc, min_field_loc
@@ -118,7 +118,7 @@ for ind, sample in enumerate(samples):
 
     plt.suptitle('Low Temperature Magnetoresistive Ratio for '+ sample,fontsize=22)
     fig.tight_layout(pad=4.0)
-    plt.show()
+    plt.savefig('/Volumes/GoogleDrive/Shared drives/Quantum Materials/Popiel/cool new graphs/mr_v_T_'+sample+'.png',dpi=300)
 
     #
     # for curr, inds in groupers.groups.items():

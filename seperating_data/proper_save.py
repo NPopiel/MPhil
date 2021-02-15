@@ -82,6 +82,19 @@ for ind, name in enumerate(filenames):
 
     df = file.open()
 
+    if ind == 0:
+        inds = np.where(np.array(df['temp'])>2.75)[0]
+        df.drop(inds+1,inplace=True)
+        df = df.reset_index()
+    if ind == 2:
+        inds = np.where(np.array(df['temp']) > 3.75)[0]
+        df.drop(inds+1,inplace=True)
+        df = df.reset_index()
+    if ind == 5:
+        inds = np.where(np.array(df['temp']) > 6.75)[0]
+        df.drop(inds+1,inplace=True)
+        df = df.reset_index()
+
     test_lst.append(df)
 
 temp_ranges = [(2, 23),
@@ -114,12 +127,7 @@ for channel in channels:
         nan_on_two=False
 
     for ind, df in enumerate(data_sets):
-
-        if ind == 0:
-            df = df.iloc[436:]
-            df = df.reset_index()
-            df = df[columns_to_keep]
-
+        df = df.reset_index()
         df = drop_double_nan(df)
         df = drop_double_nan(df,'resistance_ch2')
         df = df.reset_index()
@@ -128,18 +136,16 @@ for channel in channels:
         path = main_path + samples[ind] + '/'
         makedir(path)
 
-        df, locs=extract_stepwise_peaks(df,'temp','temp_flag','const_temp_')
+        if ind == 0:
+            df = df.drop(np.arange(5474))
+            df = df.reset_index()
+
+        df, locs=extract_stepwise_peaks(df,'temp','temp_flag','const_temp_', threshold=0.95)
         df = drop_double_nan(df)
         df = drop_double_nan(df,'resistance_ch2')
         df = df.reset_index()
 
-        if ind == 0:
-            df.temp_flag[df.temp_flag == 'const_temp_1.8'] = 'const_temp_2.0'
-            df = df[df.temp_flag != 'const_temp_2.1']
 
-        if ind == 1:
-            df.temp_flag[df.temp_flag == 'const_temp_4.8'] = 'const_temp_4.0'
-            df.temp_flag[df.temp_flag == 'const_temp_3.9'] = 'const_temp_4.0'
 
         groupers = df.groupby('temp_flag')
 
@@ -165,16 +171,22 @@ for channel in channels:
                 current_path = temp_path + str(current)+'/'
                 makedir(current_path)
 
+                #resistance, locs_2_drop = remove_noise(subsection['resistance_'+channel],5,eps=2)
+
                 resistance = subsection['resistance_'+channel]
                 field = subsection['b_field']
+                #field = [e for i, e in enumerate(field) if i not in locs_2_drop]
+
+                '''
                 fig, ax = MakePlot().create()
                 plt.plot(field)
                 plt.title('Drop_nans after current loop')
                 plt.show()
+                '''
 
                 array = np.array([resistance,field])
 
-                save_file(array,current_path,'data')
+                save_file(array,current_path,'data', file_check=False)
 
 
 

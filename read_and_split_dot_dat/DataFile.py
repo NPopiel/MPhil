@@ -23,9 +23,6 @@ class DataFile:
         delimeter = parameters[0]
         row_after_header_useless = parameters[1]
         delete_comment_flag = parameters[2]
-        new_headers = parameters[3]
-        convert_b_flag = parameters[4]
-        cols_to_keep = parameters[5]
 
         # FIgure out how to skip the header
 
@@ -56,34 +53,12 @@ class DataFile:
             dat = dat_arr
             del dat_arr
 
-        if new_headers is not None:
-            # loop over the columns and update the names
-            for ind, new_header in enumerate(new_headers):
-                dat[0, ind] = new_header
+        df = pd.DataFrame(dat)
+        # Change new labels to the header
+        df.columns = df.iloc[0]
+        df = df[1:]
 
-            # convert to pandas dataframe
-            df = pd.DataFrame(dat)
-
-            # Change new labels to the header
-            df.columns = df.iloc[0]
-            df = df[1:]
-
-            # ensure data is a float, converting all empty and string values to nan
-            df = df.apply(pd.to_numeric, errors='coerce')
-
-        else:
-            df = pd.DataFrame(dat)
-            # Change new labels to the header
-            df.columns = df.iloc[0]
-            df = df[1:]
-
-            df = df.apply(pd.to_numeric, errors='coerce')
-
-        if convert_b_flag:
-            df['b_field'] = oersted_to_tesla(df['b_field'])
-
-        if cols_to_keep is not None:
-            df = df[cols_to_keep]
+        df = df.apply(pd.to_numeric, errors='coerce')
 
         self.df = df
 
