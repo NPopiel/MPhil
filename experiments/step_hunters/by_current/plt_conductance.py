@@ -158,6 +158,12 @@ for ind, curr_data_name in enumerate(data_sets):
     #ax.legend(title='Temperature',loc='right', fontsize=12)#,bbox_to_anchor=(1, 1), borderaxespad=0.)
     ax.set_xlabel(r'Magnetic Field $(T)$', fontsize=14)
     ax.set_ylabel(r'Conductance $(\frac{2e^2}{h})$', fontsize=14)
-    plt.savefig('/Users/npopiel/Documents/MPhil/Data/step_data/Grouped by Current/VT64_conductance_'+ currents[ind]+'.png', dpi=600)
-    #plt.show()
+    ax.set_xlim()
+    ax.set_ylim()
+    ax.minorticks_on()
+    ax.tick_params('both', which='both', direction='in',
+                    bottom=True, top=True, left=True, right=True)
+
+    #plt.savefig('/Users/npopiel/Documents/MPhil/Data/step_data/Grouped by Current/VT64_conductance_'+ currents[ind]+'.png', dpi=600)
+    plt.show()
     plt.close()

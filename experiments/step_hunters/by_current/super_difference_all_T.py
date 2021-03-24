@@ -37,21 +37,21 @@ curr_900 = ['VT64_1p75K900uA.csv',
             'VT64_2p25K900uA.csv',
             'VT64_2p5K900uA.csv',
             'VT64_2p75K900uA.csv',
-            'VT64_3p0K900uA.csv',
-            'VT64_3p25K900uA.csv',
-            'VT64_3p5K900uA.csv',
-            'VT64_3p75K900uA.csv',
-            'VT64_4p0K900uA.csv']
+            'VT64_3p0K900uA.csv']
+            # 'VT64_3p25K900uA.csv',
+            # 'VT64_3p5K900uA.csv',
+            # 'VT64_3p75K900uA.csv',
+            # 'VT64_4p0K900uA.csv']
 curr_1000 = ['VT64_1p75K1000uA.csv',
              'VT64_2p0K1000uA.csv',
              'VT64_2p25K1000uA.csv',
              'VT64_2p5K1000uA.csv',
              'VT64_2p75K1000uA.csv',
-             'VT64_3p0K1000uA.csv',
-             'VT64_3p25K1000uA.csv',
-             'VT64_3p5K1000uA.csv',
-             'VT64_3p75K1000uA.csv',
-             'VT64_4p0K1000uA.csv']
+             'VT64_3p0K1000uA.csv']#,
+             # 'VT64_3p25K1000uA.csv',
+             # 'VT64_3p5K1000uA.csv',
+             # 'VT64_3p75K1000uA.csv',
+             # 'VT64_4p0K1000uA.csv']
 curr_1100 = ['VT64_1p75K1100uA.csv',
              'VT64_2p0K1100uA.csv',
              'VT64_2p25K1100uA.csv',
@@ -128,7 +128,7 @@ for ind, curr_data_name in enumerate(data_sets):
         dat = load_matrix(main_path + current_temp_data_name)
         res_lst.append(dat[0])
         field_lst.append(dat[1])
-        label_lst.append([temps[idx]] * len(dat[0]))
+        #label_lst.append([temps[idx]] * len(dat[0]))
 
         resistance = dat.T[0]
         field = dat.T[1]
@@ -154,7 +154,7 @@ for ind, curr_data_name in enumerate(data_sets):
         linear_vector = np.linspace(0, 14, 100)
 
         # Test Method
-        '''
+
         fig, ax = MakePlot().create()
 
         first_diff = np.diff(resistance)
@@ -166,7 +166,7 @@ for ind, curr_data_name in enumerate(data_sets):
         #ax.axvline(field[np.argmax(first_diff)-1])
         ax.plot(field[
         sweep_up_locs_pos_field], resistance_smooth[sweep_up_locs_pos_field], label=temps[idx])
-        '''
+
 
         # Up-Sweep Positive
         '''
