@@ -67,46 +67,6 @@ def increasing_v_decreasing(field, abs_val_h):
 
     return idxs[increasing_pos_field], idxs[decreasing_pos_field], idxs[increasing_neg_field], idxs[decreasing_neg_field]
 
-def fit_line2(mag,field,abs_val_h=4):
-
-    linear_h_top = np.where(field>abs_val_h)
-    linear_h_bot = np.where(field<-1*abs_val_h)
-
-
-
-
-    increasing_pos_field, decreasing_pos_field, increasing_neg_field, decreasing_neg_field = increasing_v_decreasing(field, abs_val_h)
-
-
-    upper_fit_inc = np.polyfit(field[increasing_pos_field],mag[increasing_pos_field],deg=1)
-    upper_fit_dec = np.polyfit(field[decreasing_pos_field], mag[decreasing_pos_field], deg=1)
-    lower_fit_inc = np.polyfit(field[increasing_neg_field],mag[increasing_neg_field],deg=1)
-    lower_fit_dec = np.polyfit(field[decreasing_neg_field], mag[decreasing_neg_field], deg=1)
-
-    upper_slope = np.average([upper_fit_inc[0], upper_fit_dec[0]])
-    lower_slope = np.average([lower_fit_inc[0], upper_fit_dec[0]])
-
-    upper_const = np.average([upper_fit_inc[1], upper_fit_dec[1]])
-    lower_const = np.average([lower_fit_inc[1], lower_fit_dec[1]])
-
-    return (upper_slope+lower_slope)/2, (upper_const+lower_const)/2
-
-def fit_line(mag,field,abs_val_h=4):
-
-    linear_h_top = np.where(field>abs_val_h)
-    linear_h_bot = np.where(field<-1*abs_val_h)
-
-    upper_fit = np.polyfit(field[linear_h_top],mag[linear_h_top],deg=1)
-    lower_fit = np.polyfit(field[linear_h_bot],mag[linear_h_bot],deg=1)
-
-    upper_slope = upper_fit[0]
-    lower_slope = lower_fit[0]
-
-    upper_const = upper_fit[1]
-    lower_const = lower_fit[1]
-
-    return (upper_slope+lower_slope)/2, (upper_const+lower_const)/2
-
 def langevin(field,mu_eff,c_imp):
 
     return c_imp*mu_eff*(1/np.tanh(np.array(mu_eff*field/1.8/kb)) - 1/(np.array(mu_eff*field/1.8/kb)))
@@ -179,9 +139,9 @@ x_linspace = np.linspace(-7,7,10000)
 # as well as the subtracted data with each line. We can also have a seperate panel subtracting th eGE control
 
 
-field_df = load_matrix('/Users/npopiel/Documents/MPhil/Data/PNR/Attempt 3/PNR_1p8K_MvsH_FC.dat')
+field_df = load_matrix('/Users/npopiel/Documents/MPhil/Data/PNR/Attempt 3/PNR_300K_MvsH.dat')
 field_df = field_df[['Temperature (K)', 'Magnetic Field (Oe)', 'DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
-field_df['Temperature'] = labels[0]
+field_df['Temperature'] = r'$300 K$'
 
 
 zero_field_df = load_matrix('/Users/npopiel/Documents/MPhil/Data/PNR/Attempt 3/PNR_1p8K_MvsH_ZFC.dat')
@@ -190,12 +150,12 @@ zero_field_df = zero_field_df[
 zero_field_df['Temperature'] = labels[0]
 
 
-magnetisation_fc = np.array(field_df[
-                                'DC Moment Fixed Ctr (emu)'])  # scipy.ndimage.filters.median_filter(np.array(field_df['DC Moment Fixed Ctr (emu)']), size=3)/1000
+magnetisation_fc = np.array(field_df['DC Moment Fixed Ctr (emu)'])
+#magnetisation_fc = savgol_filter(np.array(field_df['DC Moment Fixed Ctr (emu)']), 3,2)#np.array(field_df['DC Moment Fixed Ctr (emu)'])
 field_fc = np.array(field_df['Magnetic Field (Oe)']) / 10000
 
 
-idxs_pos_up, idxs_pos_dn, idxs_neg_up, idxs_neg_dn = increasing_v_decreasing(field_fc,4)
+idxs_pos_up, idxs_pos_dn, idxs_neg_up, idxs_neg_dn = increasing_v_decreasing(field_fc,5)
 
 upper_fit_inc_fc = np.polyfit(field_fc[idxs_pos_up], magnetisation_fc[idxs_pos_up], deg=1)
 upper_fit_dec_fc = np.polyfit(field_fc[idxs_pos_dn], magnetisation_fc[idxs_pos_dn], deg=1)
@@ -219,9 +179,8 @@ wo_line_3fc = magnetisation_fc - lower_fit_inc_fc[0]*(field_fc)
 wo_line_4fc = magnetisation_fc - lower_fit_dec_fc[0]*(field_fc)
 
 
-
-magnetisation_zfc = np.array(zero_field_df[
-                                 'DC Moment Fixed Ctr (emu)'])  # scipy.ndimage.filters.median_filter(np.array(field_df['DC Moment Fixed Ctr (emu)']), size=3)/1000
+magnetisation_zfc =  np.array(zero_field_df['DC Moment Fixed Ctr (emu)'])  #
+#magnetisation_zfc =  savgol_filter(np.array(field_df['DC Moment Fixed Ctr (emu)']),3,2) #np.array(zero_field_df['DC Moment Fixed Ctr (emu)'])  #
 field_zfc = np.array(zero_field_df['Magnetic Field (Oe)']) / 10000
 
 idxs_pos_up, idxs_pos_dn, idxs_neg_up, idxs_neg_dn = increasing_v_decreasing(field_zfc,4)
@@ -254,6 +213,7 @@ sns.set_palette('husl')
 # maybe a langevin fit also?
 
 # then repeat for ZFC
+'''
 
 fig, ax = MakePlot(nrows=2, ncols=3).create()
 # Plot original
@@ -360,44 +320,88 @@ ax6.tick_params('both', which='both', direction='in',
 plt.suptitle('PNR Magnetisation Different Subtractions 1.8 K FC', fontsize=18,fontname='Times')
 plt.tight_layout(pad=3.0)
 plt.show()
+'''
 
 
 fig, ax2 = MakePlot().create()
 
-ax2.plot(field_fc, wo_line_4fc,linewidth=2.5, label='Positive Field Increasing')
-ax2.plot(field_fc, wo_line_4fc,linewidth=2.5, label='Positive Field Decreasing')
-ax2.plot(field_fc, wo_line_4fc,linewidth=2.5, label='Negative Field Increasing')
+ax2.plot(field_fc, wo_line_1fc,linewidth=2.5, label='Positive Field Increasing')
+ax2.plot(field_fc, wo_line_2fc,linewidth=2.5, label='Positive Field Decreasing')
+ax2.plot(field_fc, wo_line_3fc,linewidth=2.5, label='Negative Field Increasing')
 ax2.plot(field_fc, wo_line_4fc,linewidth=2.5, label='Negative Field Decreasing')
 ax2.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
 ax2.set_ylabel('Magnetisation (emu)', fontsize=12,fontname='arial')
 ax2.set_xlabel('Magnetic Field (T)', fontsize=12,fontname='arial')
-ax2.set_title('Diamagnetic Contribution', fontsize=14,fontname='arial')
-ax2.legend(framealpha=0, loc=3,
-    title='Fitting Regime', prop={"size":8})
+ax2.set_title('Residual Ferromagnetism 300K', fontsize=14,fontname='arial')
+ax2.legend(framealpha=0, loc=4,
+    title='Fitting Regime', prop={"size":9})
 ax2.set_xlim()
 ax2.set_ylim()
 ax2.minorticks_on()
 ax2.tick_params('both', which='both', direction='in',
     bottom=True, top=True, left=True, right=True)
+
+#plt.show()
 #
 
 # Add inset zoom to show deviation!inset axes....
-axins = ax2.inset_axes([0.5, 0.5, 0.47, 0.47])
+axins = ax2.inset_axes([0.1, 0.5, 0.37, 0.37])
 axins.plot(x_linspace,upper_fit_inc_fc[0]*x_linspace,  linewidth=2.5, label='Positive Field Increasing')
 axins.plot(x_linspace,upper_fit_dec_fc[0]*x_linspace,  linewidth=2.5, label='Positive Field Decreasing')
 axins.plot(x_linspace,lower_fit_inc_fc[0]*x_linspace,  linewidth=2.5, label='Negative Field Increasing')
 axins.plot(x_linspace,lower_fit_dec_fc[0]*x_linspace,  linewidth=2.5, label='Negative Field Decreasing')
 # sub region of the original image
-x1, x2, y1, y2 = 6.5, 7, -0.0007, -0.00086
-axins.set_xlim(x1, x2)
-axins.set_ylim(y1, y2)
-axins.set_xticklabels('')
-axins.set_yticklabels('')
+#x1, x2, y1, y2 = -6.5, -7, +0.0007, +0.00086
+axins.set_xlabel('Field (T)',fontname='arial')
+axins.set_ylabel('Magnetization (emu)',fontname='arial')
+axins.set_xlim()
+axins.set_ylim()
+axins.set_title('Diamagnetic Contribution')
+axins.set_xticks(np.arange(-7, 7),5)
+axins.set_yticks(np.arange(-7*upper_fit_inc_fc[0], 7* upper_fit_inc_fc[0]),5)
+axins.minorticks_on()
+axins.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+axins.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+# plt.tight_layout()
+# plt.show()
+
+#axins.set_xticklabels('')
+#axins.set_yticklabels('')
 
 
-ax2.indicate_inset_zoom(axins)
+#ax2.indicate_inset_zoom(axins)
  # that is dummy code  re
 
+'''
+
+# Add inset zoom to show deviation!inset axes....
+axins2 = ax2.inset_axes([0.6, 0.36, 0.3, 0.3])
+axins2.plot(field_fc, wo_line_1fc,linewidth=2.5, label='Positive Field Increasing')
+axins2.plot(field_fc, wo_line_2fc,linewidth=2.5, label='Positive Field Decreasing')
+axins2.plot(field_fc, wo_line_3fc,linewidth=2.5, label='Negative Field Increasing')
+axins2.plot(field_fc, wo_line_4fc,linewidth=2.5, label='Negative Field Decreasing')
+# sub region of the original image
+x1, x2, y1, y2 = 5.14, 7.04, +0.000115, +0.00013
+axins2.set_xlim(x1,x2)
+axins2.set_ylim(y1,y2)
+
+axins2.set_xticks([])
+axins2.set_yticks([])
+# labels along the bottom edge are off
+
+
+
+ax2.indicate_inset_zoom(axins2)
+ # that is dummy code  re
+ '''
+
+plt.tight_layout()
+plt.show()
+
+
+'''
 
 
 fig, ax = MakePlot(nrows=2, ncols=3).create()
@@ -486,6 +490,171 @@ ax6.tick_params('both', which='both', direction='in',
 
 plt.suptitle('PNR Magnetisation Different Subtractions 1.8 K ZFC', fontsize=18,fontname='Times')
 plt.tight_layout(pad=3.0)
+plt.show()
+
+
+
+fig, ax2 = MakePlot().create()
+
+ax2.plot(field_zfc, wo_line_1zfc,linewidth=2.5, label='Positive Field Increasing')
+ax2.plot(field_zfc, wo_line_2zfc,linewidth=2.5, label='Positive Field Decreasing')
+ax2.plot(field_zfc, wo_line_3zfc,linewidth=2.5, label='Negative Field Increasing')
+ax2.plot(field_zfc, wo_line_4zfc,linewidth=2.5, label='Negative Field Decreasing')
+ax2.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+ax2.set_ylabel('Magnetisation (emu)', fontsize=12,fontname='arial')
+ax2.set_xlabel('Magnetic Field (T)', fontsize=12,fontname='arial')
+ax2.set_title('Residual Ferromagnetism ZFC 1.8K', fontsize=14,fontname='arial')
+ax2.legend(framealpha=0, loc=4,
+    title='Fitting Regime', prop={"size":9})
+ax2.set_xlim()
+ax2.set_ylim()
+ax2.minorticks_on()
+ax2.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+
+#plt.show()
+#
+
+# Add inset zoom to show deviation!inset axes....
+axins = ax2.inset_axes([0.1, 0.5, 0.37, 0.37])
+axins.plot(x_linspace,upper_fit_inc_zfc[0]*x_linspace,  linewidth=2.5, label='Positive Field Increasing')
+axins.plot(x_linspace,upper_fit_dec_zfc[0]*x_linspace,  linewidth=2.5, label='Positive Field Decreasing')
+axins.plot(x_linspace,lower_fit_inc_zfc[0]*x_linspace,  linewidth=2.5, label='Negative Field Increasing')
+axins.plot(x_linspace,lower_fit_dec_zfc[0]*x_linspace,  linewidth=2.5, label='Negative Field Decreasing')
+# sub region of the original image
+#x1, x2, y1, y2 = -6.5, -7, +0.0007, +0.00086
+axins.set_xlabel('Field (T)',fontname='arial')
+axins.set_ylabel('Magnetization (emu)',fontname='arial')
+axins.set_xlim()
+axins.set_ylim()
+axins.set_title('Diamagnetic Contribution')
+axins.set_xticks(np.arange(-7, 7),5)
+axins.set_yticks(np.arange(-7*upper_fit_inc_zfc[0], 7* upper_fit_inc_zfc[0]),5)
+axins.minorticks_on()
+axins.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+axins.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+axins2 = ax2.inset_axes([0.6, 0.36, 0.3, 0.3])
+axins2.plot(field_fc, wo_line_1zfc,linewidth=2.5, label='Positive Field Increasing')
+axins2.plot(field_fc, wo_line_2zfc,linewidth=2.5, label='Positive Field Decreasing')
+axins2.plot(field_fc, wo_line_3zfc,linewidth=2.5, label='Negative Field Increasing')
+axins2.plot(field_fc, wo_line_4zfc,linewidth=2.5, label='Negative Field Decreasing')
+# sub region of the original image
+x1, x2, y1, y2 = 5.14, 7.04, +0.000096, +0.00012
+axins2.set_xlim(x1,x2)
+axins2.set_ylim(y1,y2)
+
+axins2.set_xticks([])
+axins2.set_yticks([])
+
+
+ax2.indicate_inset_zoom(axins2)
+ # that is dummy code  re
+
+plt.tight_layout()
+plt.show()
+
+plt.tight_layout()
+plt.show()
+'''
+fig, ax2 = MakePlot().create()
+
+ax2.plot(field_fc, magnetisation_fc - average_slope_fc*(field_fc),linewidth=2.5, label='0 T')
+#ax2.plot(field_zfc, magnetisation_zfc - average_slope_zfc*(field_fc),linewidth=2.5, label='5 T')
+ax2.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+ax2.set_ylabel('Magnetisation (emu)', fontsize=12,fontname='arial')
+ax2.set_xlabel('Magnetic Field (T)', fontsize=12,fontname='arial')
+ax2.set_title('Average Fit Residual Ferromagnetism 300K', fontsize=14,fontname='arial')
+ax2.legend(framealpha=0, loc=4,
+    title='Field Cool', prop={"size":9})
+ax2.set_xlim()
+ax2.set_ylim()
+ax2.minorticks_on()
+ax2.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+
+#plt.show()
+#
+
+# Add inset zoom to show deviation!inset axes....
+axins = ax2.inset_axes([0.1, 0.5, 0.37, 0.37])
+axins.plot(x_linspace,average_slope_fc*x_linspace,  linewidth=2.5, label='0 T')
+#axins.plot(x_linspace,average_slope_zfc*x_linspace,  linewidth=2.5, label='5 T')
+# sub region of the original image
+#x1, x2, y1, y2 = -6.5, -7, +0.0007, +0.00086
+axins.set_xlabel('Field (T)',fontname='arial')
+axins.set_ylabel('Magnetization (emu)',fontname='arial')
+axins.set_xlim()
+axins.set_ylim()
+axins.set_title('Diamagnetic Contribution')
+axins.set_xticks(np.arange(-7, 7),5)
+axins.set_yticks(np.arange(-7*upper_fit_inc_zfc[0], 7* upper_fit_inc_zfc[0]),5)
+axins.minorticks_on()
+axins.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+axins.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+
+ # that is dummy code  re
+
+plt.tight_layout()
+plt.show()
+
+
+
+control_df = load_matrix(control)
+control_df = control_df[['Temperature (K)', 'Magnetic Field (Oe)', 'DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
+control_df['Temperature'] = labels[0]
+magnetisation_control = np.array(control_df['DC Moment Fixed Ctr (emu)'])
+#magnetisation_fc = savgol_filter(np.array(field_df['DC Moment Fixed Ctr (emu)']), 3,2)#np.array(field_df['DC Moment Fixed Ctr (emu)'])
+field_control = np.array(control_df['Magnetic Field (Oe)']) / 10000
+
+
+
+fig, ax2 = MakePlot().create()
+
+ax2.plot(field_fc, magnetisation_fc - magnetisation_control,linewidth=2.5, label='0 T')
+#ax2.plot(field_zfc, magnetisation_zfc - magnetisation_control,linewidth=2.5, label='5 T')
+ax2.plot(field_control, magnetisation_control - magnetisation_control,linewidth=2.5, label='Control')
+ax2.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+ax2.set_ylabel('Magnetisation (emu)', fontsize=12,fontname='arial')
+ax2.set_xlabel('Magnetic Field (T)', fontsize=12,fontname='arial')
+ax2.set_title('Average Fit Residual Ferromagnetism 300 K', fontsize=14,fontname='arial')
+ax2.legend(framealpha=0, loc=4,
+    title='Field Cool', prop={"size":9})
+ax2.set_xlim()
+ax2.set_ylim()
+ax2.minorticks_on()
+ax2.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+
+#plt.show()
+#
+
+# Add inset zoom to show deviation!inset axes....
+axins = ax2.inset_axes([0.1, 0.55, 0.37, 0.37])
+axins.plot(field_fc,magnetisation_fc,  linewidth=2.5, label='0 T')
+#axins.plot(field_zfc,magnetisation_zfc,  linewidth=2.5, label='5 T')
+axins.plot(field_control,magnetisation_control,  linewidth=2.5, label='Control')
+# sub region of the original image
+#x1, x2, y1, y2 = -6.5, -7, +0.0007, +0.00086
+axins.set_xlabel('Field (T)',fontname='arial')
+axins.set_ylabel('Magnetization (emu)',fontname='arial')
+axins.set_xlim()
+axins.set_ylim()
+axins.set_title('Raw Data')
+axins.set_xticks(np.arange(-7, 7),5)
+axins.set_yticks(np.arange(-7*upper_fit_inc_zfc[0], 7* upper_fit_inc_zfc[0]),5)
+axins.minorticks_on()
+axins.tick_params('both', which='both', direction='in',
+    bottom=True, top=True, left=True, right=True)
+axins.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+
+ # that is dummy code  re
+
+plt.tight_layout()
 plt.show()
 
 
