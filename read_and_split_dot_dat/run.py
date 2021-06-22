@@ -188,15 +188,14 @@ def save_file(data,path,name,file_check=True):
 
 
     default_delimiter = ','
-    format = '%1.5f'
 
     if len(data.shape) <= 2:
         file = path + str(name) + '.csv'
         if file_check:
             if not file_exists(file):
-                np.savetxt(file, data, delimiter=default_delimiter, fmt=format)
+                np.savetxt(file, data, delimiter=default_delimiter)
         else:
-            np.savetxt(file, data, delimiter=default_delimiter, fmt=format)
+            np.savetxt(file, data, delimiter=default_delimiter)
     else:
         file = path + str(name) + '.npy'
         if file_check:
@@ -208,7 +207,7 @@ def save_file(data,path,name,file_check=True):
 
 # Put in path to Data
 main_path = '/Users/npopiel/Documents/MPhil/Data/step_data/'
-
+open_path = ''
 # the path where we want to save the data. Same as main oath for me.
 save_path = main_path
 
@@ -220,7 +219,7 @@ filenames = [#'VT64_stepmapping.dat']#,
 # Note that NYEEdition gets wrecked at 1242
 
 # name which will be used to save the file
-sample_name_save = 'VT64_NYE'
+sample_name_save = 'VT64_'
 
 # relevant columns needed, allows us to clear memory
 relevant_columns = ['Temperature (K)',

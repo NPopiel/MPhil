@@ -118,6 +118,8 @@ def langevin(field,mu_eff,c_imp):
 
     return c_imp*mu_eff*(1/np.tanh(np.array(mu_eff*field/1.8/kb)) - 1/(np.array(mu_eff*field/1.8/kb)))
 
+def mols(mass, molar_mass):
+    return mass/molar_mass
 
 
 main_path = '/Users/npopiel/Documents/MPhil/Data/isotherms/'
@@ -162,8 +164,8 @@ for ind, file in enumerate(filenames):
     #field_df['DC Moment Fixed Ctr (emu)'] = field_df['DC Moment Fixed Ctr (emu)'].rolling(3).mean()
     df['Temperature'] = labels[ind]
     lst.append(df)
-
-    magnetisation_fc = scipy.ndimage.filters.median_filter(scipy.ndimage.filters.median_filter(np.array(df['DC Moment Free Ctr (emu)']), size=5)/1000, size=5)
+    print(mols(5.1e-3,299.36))
+    magnetisation_fc = scipy.ndimage.filters.median_filter(np.array(df['DC Moment Free Ctr (emu)']), size=5)/mols(5.1e-3,299.36)
     field_fc = np.array(df['Magnetic Field (Oe)'])/10000
 
     increase_pos, decrease_pos, increase_neg, decrease_neg = increasing_v_decreasing(field_fc,0)
@@ -180,7 +182,7 @@ for ind, file in enumerate(filenames):
 
     mag_wo_line_fc = magnetisation_fc - (slope_fc*field_fc + const)
 
-    subtracted_lines_fc.append(savgol_filter(mag_wo_line_fc,3,2))
+    subtracted_lines_fc.append(mag_wo_line_fc)
 
 
 big_field_df = pd.concat(lst)
@@ -190,7 +192,6 @@ big_field_df['Magnetic Field (T)'] = big_field_df['Magnetic Field (Oe)']/10000
 
 
 
-'''
 
 fig, ax = MakePlot(nrows=2, ncols=5).create()
 # Plot original
@@ -583,7 +584,7 @@ ax10.minorticks_on()
 ax10.tick_params('both', which='both', direction='in',
     bottom=True, top=True, left=True, right=True)
 
-'''
+
 
 # Need to interpolate the temps and the slopes(susc)
 
@@ -669,7 +670,13 @@ string_temps = [r'$25 (K)$',
           r'$75 (K)$',
           r'$100 (K)$',
           r'$125 (K)$',
-          r'$150 (K)$']
+          r'$150 (K)$',
+          r'$175 (K)$',
+          r'$200 (K)$',
+          r'$250 (K)$',
+          r'$275 (K)$']
+
+temperatures = [25, 50, 75, 100, 125, 150, 175, 200, 250, 275]
 
 fig, ax = MakePlot().create()
 
@@ -734,5 +741,78 @@ plt.title('Arrot Plot in Positive Field Region for 150 K',fontsize=18,fontname='
 plt.show()
 
 
+# Zoom in on everything indivdually
 
 
+for q in range(len(H_over_M)):
+    fig, ax = MakePlot().create()
+
+    ax.plot(H_over_M[q]- 1 / chi[q] , M_sqr[q], marker='o', label='150 K')#
+
+    ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    ax.set_ylabel(r'$M^2$ $(emu^2)$', fontsize=12, fontname='arial')
+    ax.set_xlabel(r'$\frac{H}{M} - \frac{1}{\chi}$ $(\frac{T}{emu})$', fontsize=12, fontname='arial')
+    ax.set_xlim()
+    ax.set_ylim()
+    ax.minorticks_on()
+    ax.tick_params('both', which='both', direction='in',
+                   bottom=True, top=True, left=True, right=True)
+
+    plt.legend(title=r'Temperature $(K)$', loc='best', frameon=True, fancybox=False, edgecolor='k', framealpha=1,
+               borderpad=1)
+    plt.title('Arrot Plot in Positive Field Region for' + string_temps[q], fontsize=18, fontname='arial')
+
+    plt.show()
+
+
+
+
+# Now ill attempt to fit a line to the arrot plot after removing the first 8 points!
+lines_to_fit = []
+inverse_gammas = []
+err = []
+for q in range(len(H_over_M)):
+    fig, ax = MakePlot().create()
+    x = H_over_M[q]- 1 / chi[q]
+    y = M_sqr[q]
+    fit,cov = np.polyfit(x[15:],y[15:],1, cov=True)
+    err.append(np.sqrt(np.diag(cov))[0])
+    inverse_gammas.append(fit[0])
+
+    ax.plot(H_over_M[q]- 1 / chi[q] , M_sqr[q], marker='o', label='150 K')#
+    ax.plot(x[15:],np.poly1d(fit)(x[15:]) )
+
+    ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    ax.set_ylabel(r'$M^2$ $(emu^2)$', fontsize=12, fontname='arial')
+    ax.set_xlabel(r'$\frac{H}{M} - \frac{1}{\chi}$ $(\frac{T}{emu})$', fontsize=12, fontname='arial')
+    ax.set_xlim()
+    ax.set_ylim()
+    ax.minorticks_on()
+    ax.tick_params('both', which='both', direction='in',
+                   bottom=True, top=True, left=True, right=True)
+
+    plt.legend(title=r'Temperature $(K)$', loc='best', frameon=True, fancybox=False, edgecolor='k', framealpha=1,
+               borderpad=1)
+    plt.title('Arrot Plot in Positive Field Region for' + string_temps[q], fontsize=18, fontname='arial')
+
+    plt.show()
+
+
+fig, ax = MakePlot().create()
+
+ax.scatter(temperatures[3:], 1/np.array(inverse_gammas)[3:])
+#ax.errorbar(temperatures[0:], 1/np.array(inverse_gammas)[0:],yerr=err[0:],fmt='none')
+#ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+ax.set_ylabel(r'$\gamma$', fontsize=12, fontname='arial')
+ax.set_xlabel(r'Temperature (K)', fontsize=12, fontname='arial')
+# ax.set_xlim()
+# ax.set_ylim()
+ax.set_yscale('log')
+ax.minorticks_on()
+ax.tick_params('both', which='both', direction='in',
+               bottom=True, top=True, left=True, right=True)
+
+
+plt.title('Extracting Mode-Mode Coupling' , fontsize=18, fontname='arial')
+
+plt.show()

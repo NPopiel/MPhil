@@ -39,7 +39,7 @@ sns.set_context('paper')
 
 fig, ax = MakePlot().create()
 
-clrs = sns.color_palette('husl', n_colors=10)
+#
 
 sns.scatterplot(x='temp',y='max_delta_g',hue='current',style='sweep',data=df)
 plt.show()

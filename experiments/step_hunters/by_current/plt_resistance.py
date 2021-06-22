@@ -1,3 +1,4 @@
+
 import pandas as pd
 from tools.utils import *
 from matplotlib.cm import get_cmap
@@ -145,17 +146,17 @@ for ind, curr_data_name in enumerate(data_sets):
         sweep_up_locs_neg_field = np.arange(min_loc, end_loc)
 
         ax.plot(dat[1][[sweep_up_locs_pos_field]],
-                1 / dat[0][[sweep_up_locs_pos_field]] / flux_quantum,
+                dat[0][[sweep_up_locs_pos_field]] / flux_quantum,
                 label=temps[c],color=colours[c],linewidth=2.0)
         ax.plot(dat[1][[sweep_down_locs_pos_field]],
                 1 / dat[0][[sweep_down_locs_pos_field]] / flux_quantum,
                 linestyle='dashed', label=temps[c+1],color=colours[c],linewidth=2.0)
 
         ax.plot(dat[1][[sweep_up_locs_neg_field]],
-                1 / dat[0][[sweep_up_locs_neg_field]] / flux_quantum,
+                dat[0][[sweep_up_locs_neg_field]] / flux_quantum,
                 label=temps[c],color=colours[c],linewidth=2.0)
         ax.plot(dat[1][[sweep_down_locs_neg_field]],
-                1 / dat[0][[sweep_down_locs_neg_field]] / flux_quantum,
+                dat[0][[sweep_down_locs_neg_field]] / flux_quantum,
                 linestyle='dashed', label=temps[c+1],color=colours[c],linewidth=2.0)
 
         c+=1
@@ -170,10 +171,10 @@ for ind, curr_data_name in enumerate(data_sets):
 
 
     #sns.lineplot(x=r'Magnetic Field $(T)$', y=r'Resistance $(\Omega)$', data = df, hue=r'Temperature')
-    plt.title('Conductance of VT64 at '+ currents[ind], fontsize=18)
+    plt.title('Resistance of VT64 at '+ currents[ind], fontsize=18)
     #ax.legend(title='Temperature',loc='right', fontsize=12)#,bbox_to_anchor=(1, 1), borderaxespad=0.)
     ax.set_xlabel(r'Magnetic Field $(T)$', fontsize=14)
-    ax.set_ylabel(r'Conductance $(\frac{2e^2}{h})$', fontsize=14)
+    ax.set_ylabel(r'Resistance $(\frac{h}{2e^2})$', fontsize=14)
     ax.set_xlim()
     ax.set_ylim()
     ax.minorticks_on()

@@ -27,21 +27,14 @@ m_v_h_names = ['/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement_c1-1p8K-
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement8-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement9-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement10-1p8K-FS.dat',
-               #'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement11-1p8K-FS.dat',
-               #'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement12-1p8K-FS.dat',
-               #'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement13-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement14-1p8K-FS.dat',
-               #'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement15-1p8K-FS.dat',
-               #'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement16-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement17-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement18-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement19-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement20-1p8K-FS.dat',
                '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement21-1p8K-FS.dat',
-               '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement22-1p8K-FS.dat',
-               #'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement23-1p8K-FS.dat'
-               ]
-#'/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement6-7T-tempsweep.dat']
+               '/Users/npopiel/Documents/MPhil/Data/VT68/VT68-placement22-1p8K-FS.dat']
+
 
 
 
@@ -64,30 +57,21 @@ relevant_cols = ['Temperature (K)', 'Magnetic Field (Oe)', 'DC Moment Fixed Ctr 
 
 angles = [0,
           10,
-            14,
-52,
+          14,
+          52,
           45,
           60,
           40,
-
-
-
           87,
           68,
           140,
-          #144,
           26,
-          #90,
-          #13,
           16,
-          #55,
-          #-31,
           -65,
           -44,
           -70,
           -90,
-          -130,
-          #-70
+          -130
           ]
 
 field_lst = []
@@ -201,7 +185,7 @@ plt.plot(tt, res["fitfunc"](tt), "k-", label="Fitted Function", linewidth=2)
 ax.set_xlabel('Angle Away from [001] (Degrees)',fontsize=12,fontname='Times')
 ax.set_ylabel(r'Susceptibility $(\frac{emu}{T})$', fontsize=12,fontname='Times')
 #ax.fill_between(tt,sine_plus, sine_minus,alpha=0.2,color='gray')
-ax.axvline(0,linestyle="--",c='rosybrown',label='b')
+ax.axvline(0,linestyle="--",c='rosybrown',label='c')
 ax.axvline(90,linestyle='--', c='firebrick',label='ab')
 ax.set_xlim()
 ax.set_ylim()

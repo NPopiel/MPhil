@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import scipy.interpolate
 import scipy.ndimage.filters
 import seaborn as sns
+import matplotlib.colors
 
 flux_quantum = 7.748091729 * 10 **-5
 
@@ -106,7 +107,14 @@ data_sets = [curr_500, curr_600, curr_700, curr_800, curr_900, curr_1000, curr_1
 
 sample = 'VT64'
 
-colours = sns.color_palette('muted')
+
+res_up_plus, res_down_plus, res_up_minus, res_down_minus = [], [], [], []
+b_up_plus, b_down_plus, b_up_minus, b_down_minus = [], [], [], []
+
+fig, axs = MakePlot(nrows=3,ncols=3).create()
+
+axes = [axs[0,0], axs[0,1], axs[0,2], axs[1,0], axs[1,1], axs[1,2], axs[2,0], axs[2,1], axs[2,2]]
+
 
 
 for ind, curr_data_name in enumerate(data_sets):
@@ -121,8 +129,6 @@ for ind, curr_data_name in enumerate(data_sets):
         temps = temps_b
     res_lst, field_lst = [], []
     label_lst = []
-
-    fig, ax = MakePlot().create()
 
     c = 0
 
@@ -141,45 +147,68 @@ for ind, curr_data_name in enumerate(data_sets):
 
         sweep_up_locs_pos_field = np.arange(start_loc, max_loc)
         sweep_down_locs_pos_field = np.arange(max_loc, mid_loc-1)
-        sweep_down_locs_neg_field = np.arange(mid_loc+1, min_loc)
-        sweep_up_locs_neg_field = np.arange(min_loc, end_loc)
+        sweep_up_locs_neg_field = np.arange(mid_loc+1, min_loc)
+        sweep_down_locs_neg_field = np.arange(min_loc, end_loc)
 
-        ax.plot(dat[1][[sweep_up_locs_pos_field]],
-                1 / dat[0][[sweep_up_locs_pos_field]] / flux_quantum,
-                label=temps[c],color=colours[c],linewidth=2.0)
-        ax.plot(dat[1][[sweep_down_locs_pos_field]],
-                1 / dat[0][[sweep_down_locs_pos_field]] / flux_quantum,
-                linestyle='dashed', label=temps[c+1],color=colours[c],linewidth=2.0)
+        # res_up_plus.append(dat[0][sweep_up_locs_pos_field])
+        axes[ind].plot(dat[1][[sweep_up_locs_pos_field]],
+               dat[0][[sweep_up_locs_pos_field]] / flux_quantum,
+                label=temps[c],color=plt.cm.jet(c/10),linewidth=1.2)
+        axes[ind].plot(dat[1][[sweep_down_locs_pos_field]],
+                dat[0][[sweep_down_locs_pos_field]] / flux_quantum,
+                linestyle='dashed', label=temps[c+1],color=plt.cm.jet(c/10),linewidth=1.2)
 
-        ax.plot(dat[1][[sweep_up_locs_neg_field]],
-                1 / dat[0][[sweep_up_locs_neg_field]] / flux_quantum,
-                label=temps[c],color=colours[c],linewidth=2.0)
-        ax.plot(dat[1][[sweep_down_locs_neg_field]],
-                1 / dat[0][[sweep_down_locs_neg_field]] / flux_quantum,
-                linestyle='dashed', label=temps[c+1],color=colours[c],linewidth=2.0)
+        axes[ind].plot(dat[1][[sweep_up_locs_neg_field]],
+                dat[0][[sweep_up_locs_neg_field]] / flux_quantum,
+                label=temps[c],color=plt.cm.jet(c/10),linewidth=1.2)
+        axes[ind].plot(dat[1][[sweep_down_locs_neg_field]],
+                dat[0][[sweep_down_locs_neg_field]] / flux_quantum,
+                linestyle='dashed', label=temps[c+1],color=plt.cm.jet(c/10),linewidth=1.2)
 
         c+=1
 
-    ax.ticklabel_format(style='sci', axis='y') #, scilimits=(0, 0)
+    axes[ind].ticklabel_format(style='sci', axis='y',useMathText=True) #, scilimits=(0, 0)
 
-    handles, labels = plt.gca().get_legend_handles_labels()
+    if ind == 6 :
+        axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=14, fontname='arial')
+    elif ind == 7:
+        axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=14, fontname='arial')
+    elif ind == 8:
+        axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=14, fontname='arial')
+    else:
+        axes[ind].set_xlabel(r'', fontsize=14, fontname='arial')
 
-    labels, ids = np.unique(labels, return_index=True)
-    handles = [handles[i] for i in ids]
-    plt.legend(handles, labels, title='Temperature', loc='best')
-
-
-    #sns.lineplot(x=r'Magnetic Field $(T)$', y=r'Resistance $(\Omega)$', data = df, hue=r'Temperature')
-    plt.title('Conductance of VT64 at '+ currents[ind], fontsize=18)
-    #ax.legend(title='Temperature',loc='right', fontsize=12)#,bbox_to_anchor=(1, 1), borderaxespad=0.)
-    ax.set_xlabel(r'Magnetic Field $(T)$', fontsize=14)
-    ax.set_ylabel(r'Conductance $(\frac{2e^2}{h})$', fontsize=14)
-    ax.set_xlim()
-    ax.set_ylim()
-    ax.minorticks_on()
-    ax.tick_params('both', which='both', direction='in',
+    if ind == 0:
+        axes[ind].set_ylabel(r'Resistance $(\frac{h}{2e^2})$', fontsize=14, fontname='arial')
+    elif ind == 3:
+        axes[ind].set_ylabel(r'Resistance $(\frac{h}{2e^2})$', fontsize=14, fontname='arial')
+    elif ind == 6:
+        axes[ind].set_ylabel(r'Resistance $(\frac{h}{2e^2})$', fontsize=14, fontname='arial')
+    else:
+        axes[ind].set_ylabel(r'', fontsize=14, fontname='arial')
+    axes[ind].set_xlim()
+    axes[ind].set_ylim()
+    axes[ind].minorticks_on()
+    axes[ind].tick_params('both', which='both', direction='in',
                     bottom=True, top=True, left=True, right=True)
+    axes[ind].set_title(currents[ind])
 
-    #plt.savefig('/Users/npopiel/Documents/MPhil/Data/step_data/Grouped by Current/VT64_conductance_'+ currents[ind]+'.png', dpi=600)
-    plt.show()
-    plt.close()
+
+handles, labels = axes[6].get_legend_handles_labels()
+
+labels, ids = np.unique(labels, return_index=True)
+handles = [handles[i] for i in ids]
+
+plt.subplots_adjust(hspace=0.25)
+fig.legend(handles, labels, title='Temperature', loc="center right",# mode='expand',  # Position of legend
+           borderaxespad=0.1, framealpha=0)
+           #bbox_to_anchor=(0.5, 0),bbox_transform = plt.gcf().transFigure )
+
+
+#sns.lineplot(x=r'Magnetic Field $(T)$', y=r'Resistance $(\Omega)$', data = df, hue=r'Temperature')
+plt.suptitle('Magnetoresistance of VT64', fontsize=18, fontname='arial')
+#ax.legend(title='Temperature',loc='right', fontsize=12)#,bbox_to_anchor=(1, 1), borderaxespad=0.)
+#plt.tight_layout()
+#plt.savefig('/Users/npopiel/Documents/MPhil/Data/step_data/Grouped by Current/VT64_conductance_'+ currents[ind]+'.png', dpi=600)
+plt.show()
+plt.close()

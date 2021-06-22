@@ -104,20 +104,18 @@ def integrate_the_step(field, fitted_function, real_resistance, dx=100):
 
     return area
 
-def get_B1_and_B2(first_diff):
+def get_B1_and_B2(first_diff,num_l = -1, num_r = 2):
 
-    B1, B2 = np.argmax(first_diff)  - 1, np.argmin(first_diff) + 2
+    B1, B2 = np.argmax(first_diff)  + num_l, np.argmin(first_diff) + num_r
 
-    return B1, B2
+    return B1, B2, num_l, num_r
 
-def fit_wo_step(resistance, field, window_length=5, polyorder=3, deg=3, return_field = False, plot=False,num_pts=6,return_area=False, return_shortened_locs=False):
+def get_line(resistance, field, window_length=5, polyorder=3, deg=3, num_pts=6, num_l=-1, num_r=2):
     resistance_smooth = scipy.signal.savgol_filter(x=resistance, window_length=window_length, polyorder=polyorder)
 
     first_diff = np.diff(resistance_smooth)
 
-    B1, B2 = get_B1_and_B2(first_diff)
-
-
+    B1, B2, num_l, num_r = get_B1_and_B2(first_diff,num_l,num_r)
 
     step_locs = np.arange(B1, B2)
 
@@ -140,83 +138,79 @@ def fit_wo_step(resistance, field, window_length=5, polyorder=3, deg=3, return_f
 
     fitted_line = np.polyfit(x=field[region_to_fit], y=resistance[region_to_fit], deg=deg)
 
-    if plot:
-        fig, ax = MakePlot().create()
-        ax.plot(field, 1/resistance)
-        if field[0]>0:
-            ax.plot(np.linspace(0,14,200),1/np.poly1d(fitted_line)(np.linspace(0,14,200)))
-        else:
-            ax.plot(np.linspace(-14, 0, 200), 1 / np.poly1d(fitted_line)(np.linspace(-14, 0, 200)))
-        plt.show()
-    if return_shortened_locs:
-        step_locs = smaller_region
-        if return_area:
+    return B1, B2, smaller_region, fitted_line, num_l, num_r
 
-            area = integrate_the_step(field[smaller_region],np.poly1d(fitted_line),resistance[smaller_region])
-
-            if return_field:
-                return np.poly1d(fitted_line), B1, B2, area, step_locs
-            else:
-                return np.poly1d(fitted_line), area, step_locs
-
-        else:
-
-            if return_field:
-                return np.poly1d(fitted_line), B1, B2, step_locs
-            else:
-                return np.poly1d(fitted_line), step_locs
-    else:
-        if return_area:
-
-            area = integrate_the_step(field[smaller_region], np.poly1d(fitted_line), resistance[smaller_region])
-
-            if return_field:
-                return np.poly1d(fitted_line), B1, B2, area
-            else:
-                return np.poly1d(fitted_line), area
-
-        else:
-
-            if return_field:
-                return np.poly1d(fitted_line), B1, B2
-            else:
-                return np.poly1d(fitted_line)
-
-def fit_wo_step2(resistance, field, window_length=5, polyorder=3, deg=3, return_field = False, plot=False,num_pts=6,return_area=False, return_shortened_locs=False):
-    resistance_smooth = scipy.signal.savgol_filter(x=resistance, window_length=window_length, polyorder=polyorder)
-
-    first_diff = np.diff(resistance_smooth)
-
-    B1, B2 = get_B1_and_B2(first_diff)
-
-
-
-    step_locs = np.arange(B1, B2)
-
-    # select a region with 6 points before and 6 points after step
-
-    # add in functionality here to ensure num_pts not greater/less than total
-    num_left, num_right = num_pts, num_pts
-
-    if B1-num_left < 0:
-        num_left = 0
-    if B2+num_right>field.shape[0]:
-        num_right = field.shape[0]
-
-    smaller_region = np.arange(B1-num_left, B2+num_right)
-
-    B1 = field[B1]
-    B2 = field[B2]
-
-    region_to_fit = np.setdiff1d(smaller_region, step_locs)
-
-    fitted_line = np.polyfit(x=field[region_to_fit], y=resistance[region_to_fit], deg=deg)
-
-    if plot:
-        fig, ax = MakePlot().create()
-        ax.plot(field, 1/resistance)
+def plotter(field, resistance, fitted_line):
+    fig, ax = MakePlot().create()
+    ax.plot(field, 1/resistance)
+    if field[0]>0:
         ax.plot(np.linspace(0,14,200),1/np.poly1d(fitted_line)(np.linspace(0,14,200)))
-        plt.show()
+    else:
+        ax.plot(np.linspace(-14, 0, 200), 1 / np.poly1d(fitted_line)(np.linspace(-14, 0, 200)))
+    ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    ax.set_ylabel(r'Conductance $(\frac{2 e^2}{h})$', fontsize=12, fontname='arial')
+    ax.set_xlabel(r'Magnetic Field (T)', fontsize=12, fontname='arial')
+    ax.set_title(r'Checking Fit of Step', fontsize=14, fontname='arial')
+    ax.set_xlim()
+    ax.set_ylim()
+    ax.minorticks_on()
+    ax.tick_params('both', which='both', direction='in',
+                    bottom=True, top=True, left=True, right=True)
+    fig.show()
+
+def accept(field,resistance,fitted_line):
+    plotter(field,resistance,fitted_line)
+    num_l, num_r = 0, 0
+    accept = input('Acceptable Fit? y/n').lower()
+    if accept == 'y':
+        print('Nice!')
+        good=True
+    elif accept == 'n':
+        good=False
+        l_or_r = input('Shift left or right? l/r').lower()
+
+        if l_or_r == 'r':
+            move_in_or_out = input('In or Out? i/o').lower()
+            if move_in_or_out == 'i':
+                num_r = - 1
+            elif move_in_or_out == 'o':
+                num_r = 1
+            else:
+                raise ValueError('Put in right command idiot')
+        elif l_or_r == 'l':
+            move_in_or_out = input('In or Out? i/o').lower()
+            if move_in_or_out == 'o':
+                num_l = - 1
+            elif move_in_or_out == 'i':
+                num_l = 1
+            else:
+                raise ValueError('Put in right command idiot')
+        else:
+            raise ValueError('Put in right command idiot')
+    else:
+        good=False
+        raise ValueError('Put in right command idiot')
+
+    return num_l, num_r, good
+
+
+def fit_wo_step(resistance, field, window_length=5, polyorder=3, deg=3, return_field = False,num_pts=6,return_area=False, return_shortened_locs=False):
+
+    B1, B2, smaller_region, fitted_line, num_l, num_r = get_line(resistance, field, window_length=window_length, polyorder=polyorder, deg=deg, num_pts=num_pts)
+
+    original_num_l, original_num_r = num_l, num_r
+
+    num_l_add, num_r_add, first_good = accept(field,resistance,fitted_line)
+
+    good = first_good
+
+    while not good:
+        B1, B2, smaller_region, fitted_line, num_l, num_r = get_line(resistance, field, window_length=window_length,
+                                                                     polyorder=polyorder, deg=deg, num_pts=num_pts,
+                                                                     num_l=num_l+num_l_add, num_r=num_r+num_r_add)
+        num_l_add, num_r_add, good_check = accept(field, resistance,fitted_line)
+
+        good = good_check
     if return_shortened_locs:
         step_locs = smaller_region
         if return_area:
@@ -250,6 +244,7 @@ def fit_wo_step2(resistance, field, window_length=5, polyorder=3, deg=3, return_
                 return np.poly1d(fitted_line), B1, B2
             else:
                 return np.poly1d(fitted_line)
+
 
 for ind, curr_data_name in enumerate(data_sets):
     temps = temps_b
