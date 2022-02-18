@@ -150,7 +150,7 @@ sample_lst = []
 
 for temp in temps:
 
-    temp_path = main_path + 'VT1/' + str(temp) + '/'
+    temp_path = main_path + 'VT11/' + str(temp) + '/'
 
     current_lst = []
 
@@ -206,7 +206,7 @@ ax.set_xscale('log')
 plt.colorbar()
 # plt.title(r'$\frac{R_{B=14}}{R_{B=0}}$ ('+sample+')',fontsize=22,usetex=True)
 plt.title(r'Magentoresistive Ratio for VT11 ' + r'$(\frac{R_{14T}}{R_{0T}})$ ', fontsize=16,fontname='arial')
-plt.savefig(save_path + 'VT1.png', dpi=300)
+plt.savefig(save_path + 'VT11.png', dpi=300)
 plt.close()
 plt.show()
 

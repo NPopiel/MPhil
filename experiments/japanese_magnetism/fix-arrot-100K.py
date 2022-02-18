@@ -126,13 +126,7 @@ def mols(mass, molar_mass):
 main_path = '/Volumes/GoogleDrive/My Drive/Data/isotherms/'
 
 filenames = [
-             'VT66-c2-125-FS.dat',
-             'VT66-c2-150-FS.dat',
-             'VT66-c2-175-FS.dat',
-             'VT66-c2-200-FS.dat',
-             'VT66-c2-250-FS.dat',
-             'VT66-c2-275-FS.dat',
-             'VT66-c2-300-FS.dat']
+             'VT66-c2-100-FS.dat']
 
 tempsweeps = ['/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-500-FC_00001.dat',
             '/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-500-ZFC.dat',
@@ -140,21 +134,13 @@ tempsweeps = ['/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-500-FC_00001
             '/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-70000-ZFC.dat',
             '/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-70000-ZFC.rw.dat']
 
-labels = [
-          r'$125$',
-          r'$150$',
-          r'$175$',
-          r'$200$',
-          r'$250$',
-          r'$275$',
-          r'$300$']
+labels = [r'$100 (\mathrm{K})$'
+]
 
-temps = [125,150,175,200,250,275, 300]
+temps = [100]
 lines_fc,  fields_fc, mags_fc, subtracted_lines_fc, slopes_fc = [], [], [], [], []
 lst = []
 x_linspace = np.linspace(-7,7,10000)
-
-
 
 for ind, file in enumerate(filenames):
 
@@ -169,7 +155,7 @@ for ind, file in enumerate(filenames):
     #field_df['DC Moment Fixed Ctr (emu)'] = field_df['DC Moment Fixed Ctr (emu)'].rolling(3).mean()
     df['Temperature'] = labels[ind]
     lst.append(df)
-    magnetisation_fc = scipy.ndimage.filters.median_filter(np.array(df['DC Moment Free Ctr (emu)']), size=5)/mols(6.1e-3,299.36)
+    magnetisation_fc = scipy.ndimage.filters.median_filter(np.array(df['DC Moment Free Ctr (emu)']), size=5)/mols(5.1e-3,299.36)
     field_fc = np.array(df['Magnetic Field (Oe)'])/10000
 
 
@@ -201,11 +187,13 @@ for ind, file in enumerate(filenames):
     subtracted_lines_fc.append(mag_wo_line_fc)
 
 
-T = np.array([100,125,150,175,200,250,275, 300])
+T = np.array(temps)
 chi = np.array(slopes_fc)
 #Ms = np.array(subtracted_lines_fc)
 Ms = np.array(mags_fc)
 Bs = np.array(fields_fc)
+
+
 
 
 # Figure 3 of Koyama et al FeSi
@@ -213,43 +201,27 @@ Bs = np.array(fields_fc)
 M_sqr = Ms**2
 H_over_M = Bs/Ms
 
-string_temps = [r'$100$',
-          r'$125$',
-          r'$150$',
-          r'$175$',
-          r'$200$',
-          r'$250$',
-          r'$275$',
-          r'$300$']
+x = H_over_M-1/chi
+y = M_sqr
+
+np.savetxt(main_path+'arrot-100.csv',np.squeeze(np.array([x,y])).T, delimiter=',')
+
+string_temps = labels
 
 temperatures = T
 
 fig, ax = MakePlot().create()
 
-offset_val = -0.01
-
-arrot_100 = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/arrot-100.csv')
-
-xs = H_over_M-1/chi
-ys = M_sqr
-
-xs = xs.tolist()[::-1]
-ys = ys.tolist()[::-1]
-
-xs.append(arrot_100[17:,0]+0.04)
-ys.append(arrot_100[17:,1])
-
-xs = xs[::-1]
-ys = ys[::-1]
+offset_val = 0.02
 
 
 #ticks = H_over_M-1/chi
 
 # Ticks just need to be the field value at the last point for each file.
 
-plt.xticks([0, -0.01, -0.02, -0.03, -0.04, -0.05, -0.06, -0.07],[0,0,0,0,0,0,0,0])
+plt.xticks([-1, -0.003007274706604557, 0.012582169454908403, 0.03289725949870833, 0.056953354399758904, 0.07918395192977036, 0.0994670661977429, 0.11967442463018818],[0,0,0,0,0,0,0,0])
 
-ts = [-0.003007274706604557, 0.012582169454908403, 0.03289725949870833, 0.056953354399758904, 0.07918395192977036, 0.0994670661977429, 0.11967442463018818]
+ts = [-1,-0.003007274706604557, 0.012582169454908403, 0.03289725949870833, 0.056953354399758904, 0.07918395192977036, 0.0994670661977429, 0.11967442463018818]
 print('start')
 for t1, t2 in zip(ts,ts[1:]):
     print(t2-t1)
@@ -260,24 +232,25 @@ ticks = []
 
 for i, t in enumerate(string_temps):
 
-    x = xs[i]+i*offset_val
+    test_arr = (H_over_M[i]-1/chi[i]) +i*offset_val
 
-    delta =  -1* xs[i][-1]
+    print(len(test_arr))
 
-    x+=delta
 
-    ax.plot(x,ys[i],marker='.',label=str(t),color=plt.cm.cool(i/len(string_temps)))
+    ticks.append(test_arr[15])
+
+
+    ax.plot((H_over_M[i]-1/chi[i])+i*offset_val,M_sqr[i],marker='.',label=str(t),color=plt.cm.cool(i/len(string_temps)))
     # This plots only the last 15 points
     #ax.plot((H_over_M[i]-1/chi[i])[-15:]+i*offset_val,M_sqr[i][-15:],marker='o',label=str(t))
     # Here is code to change the colors of tick labels. I need to write a loop to assign the same value as data to the label 0.
-
     plt.setp(ax.get_xticklabels()[i], color=plt.cm.cool(i/len(string_temps)))
 
 print(ticks)
 
 ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0),useMathText=True)
 ax.set_ylabel(r'$M^2$ $(\frac{\mathrm{emu}^2}{\mathrm{mol}^2})$', fontsize=28,fontname='arial')
-ax.set_xlabel(r'$\frac{H}{M} - \frac{1}{\chi}$ $(\frac{\mathrm{T}\cdot \mathrm{mol}}{\mathrm{emu}})$', fontsize=28,fontname='arial')
+ax.set_xlabel(r'$\frac{H}{M} - \frac{1}{\chi}$ $(\frac{\mathrm{T}}{\mathrm{emu}})$', fontsize=28,fontname='arial')
 
 ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
 # ax.tick_params('y', which='both', direction='in',
@@ -322,25 +295,10 @@ ax.set_ylim()
 
 #plt.legend(title=r'Temperature $(K)$', loc='best',frameon=True, fancybox=False, edgecolor='k', framealpha=1, borderpad=1)
 
+#fig.savefig(main_path+'arrot_no_fit.pdf',dpi=400)
 
 
-axins = ax.inset_axes([0.05, 0.4, 0.25, 0.35])
-axins.plot(xs[0], ys[0], c=plt.cm.cool(0), marker='.')
-
-axins.minorticks_on()
-axins.tick_params('both', which='major', direction='in',
-               bottom=True, top=True, left=True, right=True)
-
-axins.tick_params('both', which='minor', direction='in',
-               bottom=True, top=True, left=True, right=True)
-axins.set_title('100 Kelvin', fontname='arial')
-
-
-
-fig.savefig(main_path+'arrot_w-inset.pdf',dpi=400)
-
-
-#plt.show()
+plt.show()
 
 # 3B 150 K zoom
 
@@ -349,10 +307,10 @@ fig.savefig(main_path+'arrot_w-inset.pdf',dpi=400)
 lines_to_fit = []
 inverse_gammas = []
 err = []
-for q in range(len(xs)):
+for q in range(len(H_over_M)):
     # fig, ax = MakePlot().create()
-    x = xs[q]
-    y = ys[q]
+    x = H_over_M[q]- 1 / chi[q]
+    y = M_sqr[q]
     l = len(y)
     start = 8#0#2#int(round(l/3))
 
@@ -388,9 +346,9 @@ fig, ax = MakePlot().create()
 print(1/np.array(inverse_gammas))
 
 ax.scatter(temperatures, 1/np.array(inverse_gammas),s=150,c='red')
-ax.errorbar(temperatures[0], 1/np.array(inverse_gammas)[0],yerr=err[0],fmt='none',c='k',linewidth=2.1)
+ax.errorbar(temperatures, 1/np.array(inverse_gammas),yerr=err,fmt='none',c='k',linewidth=2.1)
 ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0),useMathText=True)
-ax.set_ylabel(r'$\gamma$ ($\frac{\mathrm{mol}^3 \cdot \mathrm{T}}{\mathrm{emu}^3}$)', fontsize=28, fontname='arial')
+ax.set_ylabel(r'$\gamma$', fontsize=28, fontname='arial')
 ax.set_xlabel(r'Temperature (K)', fontsize=28, fontname='arial')
 # ax.set_xlim()
 # ax.set_ylim()
@@ -404,5 +362,5 @@ ax.tick_params('both', which='minor', direction='in', length=4, width=2,
 
 plt.setp(ax.get_xticklabels(), fontsize=24, fontname='arial')
 plt.setp(ax.get_yticklabels(), fontsize=24, fontname='arial')
-#plt.show()
-plt.savefig('/Volumes/GoogleDrive/My Drive/Thesis Figures/Magnetism/gamma-T2.pdf', dpi=400)
+plt.show()
+#plt.savefig(main_path+'gamma-T.png', dpi=400)

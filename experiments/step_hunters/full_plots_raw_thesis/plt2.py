@@ -192,8 +192,11 @@ for ind, curr_data_name in enumerate(data_sets):
     axes[ind].set_xlim()
     axes[ind].set_ylim()
     axes[ind].minorticks_on()
-    axes[ind].tick_params('both', which='both', direction='in',
-                    bottom=True, top=True, left=True, right=True)
+    axes[ind].tick_params('both', which='major', direction='in', length=6, width=2,
+                   bottom=True, top=True, left=True, right=True)
+
+    axes[ind].tick_params('both', which='minor', direction='in', length=4, width=1.5,
+                   bottom=True, top=True, left=True, right=True)
     axes[ind].set_title(temps[ind])
 
 

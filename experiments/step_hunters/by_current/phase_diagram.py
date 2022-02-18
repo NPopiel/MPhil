@@ -15,6 +15,8 @@ df = pd.read_csv(main_path+'steplocs.csv')
 # groupe data by temp to loop over and extract current changes
 groupers = df.groupby('temp')
 
+
+
 for constant_temp, inds in groupers.groups.items():
 
     df_T = df[df.temp == constant_temp]

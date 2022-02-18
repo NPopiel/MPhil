@@ -157,9 +157,9 @@ for ind, sample in enumerate(samples):
     plt.colorbar()
     # plt.title(r'$\frac{R_{B=14}}{R_{B=0}}$ ('+sample+')',fontsize=22,usetex=True)
     plt.title(r'Magentoresistive Ratio for ' + sample + r'$(\frac{R_{14T}}{R_{0T}})$ ', fontsize=22)
-    plt.savefig(save_path+sample+'_interpd_clipped.png',dpi=200)
-    plt.close()
-    #plt.show()
+    #plt.savefig(save_path+sample+'_interpd_clipped.png',dpi=200)
+
+    plt.show()
     print(array.shape)
 
 

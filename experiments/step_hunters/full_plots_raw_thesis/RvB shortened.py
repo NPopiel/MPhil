@@ -100,11 +100,10 @@ temps_b = ['1.75 K +', '1.75 K -', '2.00 K +', '2.00 K -', '2.25 K +','2.25 K -'
 temps_c = ['1.75 K +', '1.75 K -', '2.00 K +', '2.00 K -', '2.25 K +','2.25 K -',
            '2.50 K +', '2.50 K -']
 temps_d = ['1.75 K +', '1.75 K -', '2.00 K +', '2.00 K -', '2.25 K +','2.25 K -']
-currents = [r'500 $\mu A$', r'600 $\mu A$',r'700 $\mu A$',r'800 $\mu A$', r'900 $\mu A$', r'1000 $\mu A$', r'1100 $\mu A$', r'1200 $\mu A$', r'1500 $\mu A$']
+currents = [r'800 $\mu A$', r'900 $\mu A$', r'1000 $\mu A$']
 
-temps = [1.75,2.00, 2.25, 2.50, 2.75, 3.00, 3.25, 3.50, 3.75, 4.00]
 
-data_sets = [curr_500, curr_600, curr_700, curr_800, curr_900, curr_1000, curr_1100, curr_1200, curr_1500]
+data_sets = [curr_800, curr_900, curr_1000]
 
 sample = 'VT64'
 
@@ -112,14 +111,15 @@ sample = 'VT64'
 res_up_plus, res_down_plus, res_up_minus, res_down_minus = [], [], [], []
 b_up_plus, b_down_plus, b_up_minus, b_down_minus = [], [], [], []
 
-fig, axs = MakePlot(nrows=3,ncols=3).create()
+fig, axs = MakePlot(nrows=3,ncols=1,figsize=(9,12)).create()
 
-axes = [axs[0,0], axs[0,1], axs[0,2], axs[1,0], axs[1,1], axs[1,2], axs[2,0], axs[2,1], axs[2,2]]
+axes = [axs[0],axs[1], axs[2]]
 
 
 
 for ind, curr_data_name in enumerate(data_sets):
 
+    temps = temps_a
     res_lst, field_lst = [], []
     label_lst = []
 
@@ -145,48 +145,32 @@ for ind, curr_data_name in enumerate(data_sets):
 
         # res_up_plus.append(dat[0][sweep_up_locs_pos_field])
         axes[ind].plot(dat[1][[sweep_up_locs_pos_field]],
-               1/dat[0][[sweep_up_locs_pos_field]] / flux_quantum,
-                label=str(temps[idx]) + ' K',color=plt.cm.jet(c/10),linewidth=1.2)
+               dat[0][[sweep_up_locs_pos_field]],
+                label=temps[c],color=plt.cm.jet(c/10),linewidth=1.2)
         axes[ind].plot(dat[1][[sweep_down_locs_pos_field]],
-                1/dat[0][[sweep_down_locs_pos_field]] / flux_quantum,
-                linestyle='dashed', label=str(temps[idx]) + ' K',color=plt.cm.jet(c/10),linewidth=1.2)
+                dat[0][[sweep_down_locs_pos_field]],
+                linestyle='dashed', label=temps[c+1],color=plt.cm.jet(c/10),linewidth=1.2)
 
         axes[ind].plot(dat[1][[sweep_up_locs_neg_field]],
-                1/dat[0][[sweep_up_locs_neg_field]] / flux_quantum,
-                label=str(temps[idx]) + ' K',color=plt.cm.jet(c/10),linewidth=1.2)
+                dat[0][[sweep_up_locs_neg_field]],
+                label=temps[c],color=plt.cm.jet(c/10),linewidth=1.2)
         axes[ind].plot(dat[1][[sweep_down_locs_neg_field]],
-                1/dat[0][[sweep_down_locs_neg_field]] / flux_quantum,
-                linestyle='dashed', label=str(temps[idx]) + ' K',color=plt.cm.jet(c/10),linewidth=1.2)
+                dat[0][[sweep_down_locs_neg_field]],
+                linestyle='dashed', label=temps[c+1],color=plt.cm.jet(c/10),linewidth=1.2)
 
         c+=1
 
-    axes[ind].ticklabel_format(style='sci', axis='y',useMathText=True) #, scilimits=(0, 0)
 
-    if ind == 6:
-        # axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=22, fontname='arial')
-        plt.setp(axes[ind].get_xticklabels(), fontsize=18, fontname='arial')
-    elif ind == 7:
-        # axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=22, fontname='arial')
-        plt.setp(axes[ind].get_xticklabels(), fontsize=18, fontname='arial')
-    elif ind == 8:
-        # axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=22, fontname='arial')
+    if ind == 2 :
+        #axes[ind].set_xlabel(r'Magnetic Field $(T)$', fontsize=22, fontname='arial')
         plt.setp(axes[ind].get_xticklabels(), fontsize=18, fontname='arial')
     else:
         axes[ind].set_xlabel(r'', fontsize=22, fontname='arial')
         axes[ind].set_xticklabels([])
 
-    if ind == 0:
-        # axes[ind].set_ylabel(r'Resistance $(\Omega)$', fontsize=22, fontname='arial')
-        print('h')
 
-    elif ind == 3:
-        print('h')
-        # axes[ind].set_ylabel(r'Resistance $(\Omega)$', fontsize=22, fontname='arial')
-    elif ind == 6:
-        print('h')
-        # axes[ind].set_ylabel(r'Resistance $(\Omega)$', fontsize=22, fontname='arial')
-    else:
-        axes[ind].set_ylabel(r'', fontsize=22, fontname='arial')
+    axes[ind].set_ylabel(r'', fontsize=22, fontname='arial')
+
     plt.setp(axes[ind].get_yticklabels(), fontsize=18, fontname='arial')
     axes[ind].set_xlim()
     axes[ind].set_ylim()
@@ -196,29 +180,55 @@ for ind, curr_data_name in enumerate(data_sets):
 
     axes[ind].tick_params('both', which='minor', direction='in', length=4, width=1.5,
                    bottom=True, top=True, left=True, right=True)
-    axes[ind].set_title(currents[ind], fontname='arial', fontsize='20')
+    axes[ind].set_title(currents[ind])
+
+    axes[ind].axhline(607,c='k', alpha=0.36, linestyle='dashed')
+
+#
+# handles, labels = axes[8].get_legend_handles_labels()
+#
+# labels, ids = np.unique(labels, return_index=True)
+# handles = [handles[i] for i in ids]
+#
+#
+#
+# plt.subplots_adjust(hspace=0.25)
+# legend = fig.legend(handles, labels, title='Temperature', loc='upper right',# mode='expand',  # Position of legend
+#             framealpha=0,prop={"size": 16})
+#
+# plt.setp(legend.get_title(), fontsize=20, fontname='arial')
+
+           #bbox_to_anchor=(0.5, 0),bbox_transform = plt.gcf().transFigure )
 
 
+plt.subplots_adjust(left=0.125, right=0.83, bottom=0.1,  top=0.9, wspace=0.2, hspace=0.3)
 
-handles, labels = axes[0].get_legend_handles_labels()
+# handles, labels = ax.get_legend_handles_labels()
+# legend = fig.legend(handles, labels, framealpha=0, ncol=1,bbox_to_anchor=(1,1),  # len(dset)//12+
+#                        title='Current (mA)', prop={"size": 18})
+# plt.setp(legend.get_title(), fontsize=20, fontname='arial')
 
-labels, ids = np.unique(labels, return_index=True)
-handles = [handles[i] for i in ids]
+cbar_ax = fig.add_axes([0.86, 0.1, 0.022, 0.8])
+
+cbar_tick_locs = np.arange(10)/10
 
 
+temps = [1.75,2.00, 2.25, 2.50, 2.75, 3.00, 3.25, 3.50, 3.75, 4.00]
 
-plt.subplots_adjust(hspace=0.25)
-legend = fig.legend(handles, labels, title='Temperature', loc='upper right',   # Position of legend
-            framealpha=0,prop={"size": 16})
-plt.setp(legend.get_title(), fontsize=18, fontname='arial')
-fig.text(0.4,0.03, 'Magnetic Field (T)',fontname='arial',fontsize=28)
-fig.text(0.03,0.4, r'Conductance $(\frac{2e^2}{h})$',fontname='arial',fontsize=28,rotation=90)
+sm = plt.cm.ScalarMappable(cmap='jet')
+cbar = fig.colorbar(sm, ticks=cbar_tick_locs, cax=cbar_ax,pad=0.04, aspect = 30)
+cbar.ax.set_yticklabels(temps)
+cbar.ax.set_title(r'Temperature (K)',fontname='arial', fontsize=20,pad=10.0)
+cbar.ax.tick_params(labelsize=18)
+
+fig.text(0.3,0.03, 'Magnetic Field (T)',fontname='arial',fontsize=28)
+fig.text(0.03,0.4, r'Resistance $(\Omega)$',fontname='arial',fontsize=28,rotation=90)
 
 
 #sns.lineplot(x=r'Magnetic Field $(T)$', y=r'Resistance $(\Omega)$', data = df, hue=r'Temperature')
 #plt.suptitle('Magnetoresistance of VT64', fontsize=18, fontname='arial')
 #ax.legend(title='Temperature',loc='right', fontsize=12)#,bbox_to_anchor=(1, 1), borderaxespad=0.)
 #plt.tight_layout()
-plt.savefig('/Volumes/GoogleDrive/My Drive/Thesis Figures/Transport/VT64_GvB_Ohms-draft1.png', bbox_inches='tight',dpi=400)
+plt.savefig('/Volumes/GoogleDrive/My Drive/Thesis Figures/Transport/step-small-resistance.pdf',dpi=400)
 #plt.show()
 #plt.close()

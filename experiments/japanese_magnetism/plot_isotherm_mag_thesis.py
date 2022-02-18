@@ -176,7 +176,7 @@ for ind, file in enumerate(filenames):
     df['Temperature'] = labels[ind]
     lst.append(df)
 
-    moles = mols(5.1,299.36)
+    moles = mols(6.1e-3,299.36)
     magnetisation_fc = scipy.ndimage.filters.median_filter(np.array(df['DC Moment Fixed Ctr (emu)']), size=5)/moles
     field_fc = np.array(df['Magnetic Field (Oe)'])/10000
 
@@ -228,8 +228,8 @@ for i, t in enumerate(T):
     else:
         ax.plot(Bs[i][3:], Ms[i][3:], marker='o', label=str(t), c=plt.cm.gnuplot(i / len(T)))
 
-ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
-ax.set_ylabel(r'Magnetization $(\frac{\mathrm{emu}}{\mathrm{mol}})$', fontsize=ax_lab_size,fontname='arial')
+#ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
+ax.set_ylabel(r'Magnetisation $(\frac{\mathrm{emu}}{\mathrm{mol}})$', fontsize=ax_lab_size,fontname='arial')
 ax.set_xlabel(r'Magnetic Field $(T)$', fontsize=ax_lab_size,fontname='arial')
 ax.set_xlim()
 ax.set_ylim()
@@ -240,9 +240,9 @@ ax.yaxis.offsetText.set_fontsize(ax_lab_size-8)
 #plt.legend(title=r'Temperature $(K)$', loc='best',frameon=True, fancybox=False, edgecolor='k', framealpha=1, borderpad=1)
 #ax.set_title('Magnetization in Positive Field Region',fontsize=title_size,fontname='arial', pad=30)
 
-ax.annotate(r'FeSb$_2$',xy=(4,3.2e-2),fontname='arial',fontsize=24,va='center',ha='center')
-ax.annotate(r'VT66',xy=(4,2.9e-2),fontname='arial',fontsize=24,va='center',ha='center')
-ax.annotate(r'$ \vec H \parallel c $',xy=(4,2.6e-2), fontname='arial',fontsize=24,va='center',ha='center')
+ax.annotate(r'FeSb$_2$',xy=(2,2.75e1),fontname='arial',fontsize=24,va='center',ha='center')
+ax.annotate(r'VT66',xy=(2,2.45e1),fontname='arial',fontsize=24,va='center',ha='center')
+ax.annotate(r'$ \vec H \parallel c $',xy=(2,2.15e1), fontname='arial',fontsize=24,va='center',ha='center')
 
 handles, labels = ax.get_legend_handles_labels()
 legend = ax.legend(handles, labels, framealpha=0, ncol=1,  # len(dset)//12+
@@ -257,35 +257,35 @@ for l in legend.get_lines():
 
 
 
-# Get inset axis with temperature dependence
-axins = ax.inset_axes([0.07, 0.56, 0.34, 0.34])
-
-d = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-70000-ZFC.dat')[['Temperature (K)', 'Magnetic Field (Oe)','DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
-tempsweepTs = np.array(d['Temperature (K)'])
-tempsweepMs = scipy.ndimage.median_filter(np.array(d['DC Moment Fixed Ctr (emu)']), size=5)/moles
-# d2 = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-500-FC_00001.dat')[['Temperature (K)', 'Magnetic Field (Oe)','DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
-# tempsweepTs2 = np.array(d2['Temperature (K)'])
-# tempsweepMs2 = scipy.ndimage.median_filter(np.array(d2['DC Moment Fixed Ctr (emu)']), size=5)/moles
-d3 = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-20000-ZFC.dat')[['Temperature (K)', 'Magnetic Field (Oe)','DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
-tempsweepTs3 = np.array(d3['Temperature (K)'])
-tempsweepMs3 = scipy.ndimage.median_filter(np.array(d3['DC Moment Fixed Ctr (emu)']), size=5)/moles
-
-axins.plot(tempsweepTs, tempsweepMs, c='gray',linewidth=2.2, label='7 T Scan')
-axins.plot(tempsweepTs3, tempsweepMs3, c='r',linewidth=2.2, label='2 T Scan')
-# axins.plot(tempsweepTs2, tempsweepMs2, c='deepskyblue',linewidth=2.2, label='0.05 T Scan')
-
-axins.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
-axins.set_ylabel(r'Magnetization $(\frac{\mathrm{emu}}{\mathrm{mol}})$', fontsize=16,fontname='arial')
-axins.set_xlabel(r'Temperature (K)', fontsize=16,fontname='arial')
-axins.axhline(y=0,linestyle='--',c='k', linewidth=4)
-l2 = axins.legend(title='Field Strength', loc='best',framealpha=0)
-plt.setp(l2.get_title(), fontname='arial')
-axins.set_xlim()
-axins.set_ylim()
-axins.minorticks_on()
-axins.tick_params('both', which='both', direction='in',
-    bottom=True, top=True, left=True, right=True)
-axins.yaxis.offsetText.set_fontsize(16)
+# # Get inset axis with temperature dependence
+# axins = ax.inset_axes([0.07, 0.56, 0.34, 0.34])
+#
+# d = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-70000-ZFC.dat')[['Temperature (K)', 'Magnetic Field (Oe)','DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
+# tempsweepTs = np.array(d['Temperature (K)'])
+# tempsweepMs = scipy.ndimage.median_filter(np.array(d['DC Moment Fixed Ctr (emu)']), size=5)/moles
+# # d2 = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-500-FC_00001.dat')[['Temperature (K)', 'Magnetic Field (Oe)','DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
+# # tempsweepTs2 = np.array(d2['Temperature (K)'])
+# # tempsweepMs2 = scipy.ndimage.median_filter(np.array(d2['DC Moment Fixed Ctr (emu)']), size=5)/moles
+# d3 = load_matrix('/Volumes/GoogleDrive/My Drive/Data/isotherms/VT66-c2-20000-ZFC.dat')[['Temperature (K)', 'Magnetic Field (Oe)','DC Moment Fixed Ctr (emu)', 'DC Moment Free Ctr (emu)']]
+# tempsweepTs3 = np.array(d3['Temperature (K)'])
+# tempsweepMs3 = scipy.ndimage.median_filter(np.array(d3['DC Moment Fixed Ctr (emu)']), size=5)/moles
+#
+# axins.plot(tempsweepTs, tempsweepMs, c='gray',linewidth=2.2, label='7 T Scan')
+# axins.plot(tempsweepTs3, tempsweepMs3, c='r',linewidth=2.2, label='2 T Scan')
+# # axins.plot(tempsweepTs2, tempsweepMs2, c='deepskyblue',linewidth=2.2, label='0.05 T Scan')
+#
+# axins.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
+# axins.set_ylabel(r'Magnetization $(\frac{\mathrm{emu}}{\mathrm{mol}})$', fontsize=16,fontname='arial')
+# axins.set_xlabel(r'Temperature (K)', fontsize=16,fontname='arial')
+# axins.axhline(y=0,linestyle='--',c='k', linewidth=4)
+# l2 = axins.legend(title='Field Strength', loc='best',framealpha=0)
+# plt.setp(l2.get_title(), fontname='arial')
+# axins.set_xlim()
+# axins.set_ylim()
+# axins.minorticks_on()
+# axins.tick_params('both', which='both', direction='in',
+#     bottom=True, top=True, left=True, right=True)
+# axins.yaxis.offsetText.set_fontsize(16)
 plt.tight_layout(pad=14)
 plt.show()
-fig.savefig(main_path+'isotherms.png',dpi=400)
+fig.savefig(main_path+'isotherms2-fixed.pdf',dpi=400)
